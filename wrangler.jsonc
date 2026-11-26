@@ -1,11 +1,17 @@
 // Cloudflare Workers deploy (Workers & Pages → awora-website).
 // Build command: npm run build · Deploy command: npx wrangler deploy
-// Variables and secrets are set in the dashboard, not here (keep_vars keeps them on deploy).
+// Plain settings are in "vars" below; secrets are set in the dashboard (keep_vars keeps them on deploy).
 {
   "name": "awora-website",
   "main": "worker/index.js",
   "compatibility_date": "2025-09-01",
   "keep_vars": true,
+  // Plain-text settings. Keys and secrets (SUPABASE_*, RESEND_API_KEY) stay in the dashboard as Secrets.
+  "vars": {
+    "ORDER_NOTIFY_EMAIL": "eleenehovak@gmail.com",
+    "RESEND_FROM": "Awora <orders@awora.space>",
+    "SITE_URL": "https://awora.space"
+  },
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
