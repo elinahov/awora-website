@@ -1,3 +1,6 @@
+// Public address of the live site (canonical URLs, sitemap, structured data).
+export const SITE_URL = 'https://awora.space';
+
 // Contact channels. Fill these in; empty values are hidden on the site.
 export const SITE = {
   instagram: '', // e.g. 'https://www.instagram.com/awora.home/'

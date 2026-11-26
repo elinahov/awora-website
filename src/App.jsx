@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import { DEFAULT_LANG, LANGS, LangProvider, translate } from './i18n.jsx';
+import { DEFAULT_LANG, LANGS, LangProvider } from './i18n.jsx';
+import { useCatalog } from './lib/catalog.jsx';
+import { applySeo, seoFor } from './lib/seo.js';
 import Nav from './components/Nav.jsx';
 import Footer from './components/Footer.jsx';
 import CartDrawer from './components/CartDrawer.jsx';
@@ -30,13 +32,13 @@ const preferredLang = () => {
 function LangLayout() {
   const { lang } = useParams();
   const { pathname, hash } = useLocation();
+  const catalog = useCatalog();
   useEffect(() => {
     if (!LANGS.includes(lang)) return;
-    document.documentElement.lang = lang;
-    document.title = translate(lang, 'meta.title');
-    document.querySelector('meta[name="description"]')?.setAttribute('content', translate(lang, 'meta.desc'));
     try { localStorage.setItem('awora.lang', lang); } catch { /* ignore */ }
   }, [lang]);
+  // title, description, canonical, hreflang and robots for the current page (same as the prerendered HTML)
+  useEffect(() => { if (LANGS.includes(lang)) applySeo(seoFor({ path: pathname, catalog })); }, [lang, pathname, catalog]);
   // new page → top; in-page hash → that section (below the fixed nav)
   useEffect(() => {
     if (!hash) { window.scrollTo(0, 0); return; }

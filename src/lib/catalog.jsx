@@ -11,8 +11,9 @@ const fallback = {
 const CatalogCtx = createContext({ ...fallback, reload: () => {} });
 
 // Reads catalog tables from Supabase when configured; otherwise (or on error) uses the bundled seed.
-export function CatalogProvider({ children }) {
-  const [data, setData] = useState(fallback);
+// `initial` lets the build-time prerender pass catalog data it fetched (see scripts/prerender.mjs).
+export function CatalogProvider({ children, initial }) {
+  const [data, setData] = useState(initial || fallback);
   const load = useCallback(async () => {
     if (!supabase) return;
     try {

@@ -35,10 +35,10 @@ export const COMBOS = [
 export const COVER_SHAPES = [
   { id: 'square', name: { en: 'Square', hy: 'Քառակուսի' }, price: 0 },
   { id: 'circle', name: { en: 'Circle', hy: 'Շրջան' }, price: 0 },
-  { id: 'clover', name: { en: 'Clover', hy: 'Երեքնուկ' }, price: 600 },
-  { id: 'cloud', name: { en: 'Cloud', hy: 'Ամպ' }, price: 600 },
-  { id: 'wavy', name: { en: 'Wavy', hy: 'Ալիքավոր' }, price: 600 },
-  { id: 'flower', name: { en: 'Flower', hy: 'Ծաղիկ' }, price: 900 }
+  { id: 'clover', name: { en: 'Clover', hy: 'Երեքնուկ' }, price: 0 },
+  { id: 'cloud', name: { en: 'Cloud', hy: 'Ամպ' }, price: 0 },
+  { id: 'wavy', name: { en: 'Wavy', hy: 'Ալիքավոր' }, price: 0 },
+  { id: 'flower', name: { en: 'Flower', hy: 'Ծաղիկ' }, price: 0 }
 ];
 
 export const SECTION_TYPES = [
@@ -51,11 +51,13 @@ export const SECTION_TYPES = [
 
 export const PATTERNS = [
   { id: 'plain', name: { en: 'Plain', hy: 'Միագույն' }, price: 0 },
-  { id: 'waves', name: { en: 'Waves', hy: 'Ալիքներ' }, price: 500 },
-  { id: 'blobs', name: { en: 'Soft shapes', hy: 'Փափուկ ձևեր' }, price: 500 },
-  { id: 'stripes', name: { en: 'Stripes', hy: 'Գծեր' }, price: 500 },
-  { id: 'dots', name: { en: 'Dots', hy: 'Կետեր' }, price: 500 },
-  { id: 'checks', name: { en: 'Checks', hy: 'Վանդակներ' }, price: 500 }
+  { id: 'waves', name: { en: 'Waves', hy: 'Ալիքներ' }, price: 0 },
+  { id: 'flowers', name: { en: 'Flowers', hy: 'Ծաղիկներ' }, price: 0 },
+  { id: 'grid', name: { en: 'Grid', hy: 'Ցանց' }, price: 0 },
+  { id: 'stripes', name: { en: 'Stripes', hy: 'Գծեր' }, price: 0 },
+  { id: 'dots', name: { en: 'Dots', hy: 'Կետեր' }, price: 0 },
+  { id: 'checks', name: { en: 'Checks', hy: 'Վանդակներ' }, price: 0 },
+  { id: 'sparkles', name: { en: 'Sparkles', hy: 'Փայլեր' }, price: 0 }
 ];
 
 // Decor objects: each kind has its own shape and size options.
@@ -91,7 +93,7 @@ export const DECOR_SIZES = {
   ]
 };
 
-export const COVER_PRICING = { firstSection: 3900, extraSection: 2900, lever: 500 };
+export const COVER_PRICING = { firstSection: 4900, extraSection: 2900, lever: 500 };
 
 // Toppers for toggle-switch levers, chosen per key. 'none' = the plain lever. Priced per topper (COVER_PRICING.lever).
 export const LEVER_SHAPES = [
@@ -122,8 +124,8 @@ export const PRODUCTS = [
     { sections: 1, slots: ['k1'], shape: 'circle', orientation: 'h', pattern: 'waves', combo: 'sea' }),
   cover('clover-duo', 'soft',
     { en: 'Clover double cover', hy: 'Կրկնակի «Երեքնուկ»' },
-    { en: 'Two keys, big round lobes and a floating shape in your colors.', hy: 'Երկու ստեղն, մեծ կլոր թերթեր և լողացող ձև քո գույներով։' },
-    { sections: 2, slots: ['k1', 'k1'], shape: 'clover', orientation: 'h', pattern: 'blobs', combo: 'poppy' }),
+    { en: 'Two keys, big round lobes and a scatter of daisies in your colors.', hy: 'Երկու ստեղն, մեծ կլոր թերթեր և երիցուկներ քո գույներով։' },
+    { sections: 2, slots: ['k1', 'k1'], shape: 'clover', orientation: 'h', pattern: 'flowers', combo: 'poppy' }),
   cover('dotty-socket', 'graphic',
     { en: 'Dotty socket cover', hy: 'Կետավոր վարդակ' },
     { en: 'Polka dots around the socket you use every day.', hy: 'Կետեր այն վարդակի շուրջ, որից օգտվում ես ամեն օր։' },

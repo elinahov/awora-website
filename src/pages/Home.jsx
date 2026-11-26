@@ -13,7 +13,7 @@ import Living, { HOME_FLIGHTS } from '../components/Living.jsx';
 import { AWMark } from '../components/Logo.jsx';
 import { ArcBadge, ArrowDot, Count, HalfMoons, Ribbons, Sticker } from '../components/Decor.jsx';
 
-const HERO_SLUGS = ['clover-duo', 'bean-tray', 'dotty-socket', 'wavy-frame', 'wavy-trio', 'puddle-mirror'];
+const HERO_SLUGS = ['clover-duo', 'cloud-switch', 'dotty-socket', 'flower-switch', 'wavy-trio', 'wave-switch']; // switch & socket covers only
 const WALK_PRODUCT = 'clover-duo';
 
 /* ---------- hero tile: one product cycling through three color pairs ---------- */
@@ -68,23 +68,24 @@ function Hero() {
     const hero = heroRef.current, copy = copyRef.current;
     const orbit = [...hero.querySelectorAll('[data-orbit]')].map((el, i, all) => ({ el, base: -Math.PI / 2 + i * 2 * Math.PI / all.length + .35, w: 0, h: 0 }));
     const RM = reducedMotion();
-    let ocx = 0, ocy = 0, orx = 0, ory = 0, vh = innerHeight, pmx = 0, pmy = 0, smx = 0, smy = 0, raf = 0, still = false;
+    let ocx = 0, ocy = 0, orx = 0, ory = 0, cr = null, vh = innerHeight, pmx = 0, pmy = 0, smx = 0, smy = 0, raf = 0, phone = false;
     const size = () => {
       vh = innerHeight;
-      // phones: no orbit, the tiles sit in a strip under the buttons (see .hero__tiles)
-      still = isMobile();
-      if (still) { orbit.forEach(o => { o.el.style.transform = ''; o.el.style.zIndex = ''; o.el.style.opacity = ''; o.el.style.pointerEvents = ''; }); return; }
+      // phones orbit too: a tall ellipse whose sides run just past the screen edges, so pieces peek in
+      phone = isMobile();
       orbit.forEach(o => { o.w = o.el.offsetWidth; o.h = o.el.offsetHeight; });
       const H = hero.offsetHeight, W = hero.offsetWidth, top = isMobile() ? 110 : 130;
       ocx = W / 2; ocy = copy.offsetTop + copy.offsetHeight / 2;
       const th = Math.max(...orbit.map(o => o.h));
-      orx = W * (isMobile() ? .6 : .41);
+      orx = W * (phone ? .56 : .41);
       ory = Math.max(copy.offsetHeight / 2 + th * .55, Math.min(ocy - top - th * .2, H - ocy - th * .25));
       ory = Math.min(ory, ocy - top - th * .4); // keep the top of the orbit below the header
+      if (phone) ory = copy.offsetHeight / 2 + th * .78; // phones: clear the whole copy block; the hero is tall enough (CSS)
+      cr = { l: copy.offsetLeft, t: copy.offsetTop, r: copy.offsetLeft + copy.offsetWidth, b: copy.offsetTop + copy.offsetHeight };
     };
     const step = time => {
       const sy = scrollY;
-      if (!still && sy < vh * 1.6) {
+      if (sy < vh * 1.6) {
         smx = lerp(smx, pmx, .06); smy = lerp(smy, pmy, .06);
         const spin = RM ? 0 : time * (2 * Math.PI / 80000) + sy * .0016;
         const k = 1 + sy / vh * .35;
@@ -95,7 +96,13 @@ function Hero() {
           o.el.style.transform = `translate3d(${x}px,${y}px,0) scale(${sc})`;
           o.el.style.zIndex = sn > 0 ? 3 : 2;
           // fade out while passing above/below the headline so the copy and buttons stay readable
-          const vis = clamp((Math.abs(Math.cos(a)) - .22) / .26);
+          // phones: fade a piece while it passes behind the text block, by how much it overlaps it
+          let vis;
+          if (phone) {
+            const w = o.w * sc, h = o.h * sc, l = x + (o.w - w) / 2, tp = y + (o.h - h) / 2;
+            const ov = Math.max(0, Math.min(l + w, cr.r) - Math.max(l, cr.l)) * Math.max(0, Math.min(tp + h, cr.b) - Math.max(tp, cr.t));
+            vis = 1 - .85 * clamp(ov / (w * h) * 2.5);
+          } else vis = clamp((Math.abs(Math.cos(a)) - .22) / .26);
           o.el.style.opacity = vis; o.el.style.pointerEvents = vis < .4 ? 'none' : '';
         });
       }
@@ -109,8 +116,9 @@ function Hero() {
     return () => { cancelAnimationFrame(raf); ro.disconnect(); removeEventListener('mousemove', onMove); };
   }, [tiles.length]);
 
-  const comboSets = [['classic', 'night', 'garden'], ['sunny', 'sea', 'wine'], ['garden', 'classic', 'sea'],
-    ['poppy', 'mist', 'sunny'], ['sunny', 'ink', 'night'], ['sea', 'poppy', 'mist']];
+  // Pairs with a colored base only: white-based ones (classic, ink) vanish on the page background.
+  const comboSets = [['poppy', 'night', 'garden'], ['sunny', 'sea', 'wine'], ['garden', 'wine', 'sea'],
+    ['wine', 'mist', 'sunny'], ['sunny', 'poppy', 'night'], ['sea', 'poppy', 'mist']];
 
   return (
     <section className={`hero${loaded ? ' loaded' : ''}`} id="hero" ref={heroRef} aria-labelledby="hero-title">

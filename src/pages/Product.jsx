@@ -3,10 +3,26 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useT } from '../i18n.jsx';
 import { useCatalog } from '../lib/catalog.jsx';
 import { useCart } from '../cart.jsx';
-import { configCode, fieldFor, formatAMD, initialConfig, keysIn, normLevers, priceOf } from '../lib/config.js';
+import { configCode, formatAMD, initialConfig, keysIn, normLevers, priceOf } from '../lib/config.js';
 import { COVER_SHAPES, DECOR_SHAPES, DECOR_SIZES, LEVER_SHAPES, PATTERNS, SECTION_TYPES } from '../data/seed.js';
 import ProductPreview, { LeverIcon } from '../components/ProductPreview.jsx';
 import { Opts, Swatches } from '../components/Options.jsx';
+import Palette from '../components/Palette.jsx';
+import { track } from '../lib/analytics.js';
+
+// Line icons for the configurator headings (stroke = currentColor).
+const ICONS = {
+  layers: 'M12 3 3 8l9 5 9-5-9-5ZM3 12.5l9 5 9-5M3 16.5l9 5 9-5',
+  shape: 'M12 2.8 20 7.4v9.2L12 21.2 4 16.6V7.4L12 2.8ZM4 7.4l8 4.6 8-4.6M12 12v9.2',
+  sliders: 'M4 7h9M17 7h3M4 17h3M11 17h9M15 5v4M9 15v4',
+  turn: 'M3 8h9v9H3zM12 12h9v9h-9zM8 3h9v5',
+  pattern: 'M4 4h6v6H4zM14 14h6v6h-6zM14 4h6v6h-6zM4 14h6v6H4z',
+  drop: 'M12 3s7 7.2 7 12a7 7 0 0 1-14 0c0-4.8 7-12 7-12Z',
+  lever: 'M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5ZM10.5 7.5h3v9h-3z',
+  reset: 'M4 12a8 8 0 1 0 2.4-5.7M4 4v4.5h4.5'
+};
+const Icon = ({ name }) => <svg className="ico" viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[name]} /></svg>;
+const Head = ({ icon, children }) => <span className="field__label field__label--head"><Icon name={icon} />{children}</span>;
 
 export default function Product() {
   const t = useT();
@@ -33,19 +49,23 @@ export default function Product() {
 
   const cover = cfg.kind === 'cover';
   const set = patch => setCfg(c => ({ ...c, ...patch }));
+  // Every configurator click is sent to Google Analytics as `configurator_option` (option + value).
+  const log = (option, value) => track('configurator_option', { option, value: String(value), product: product.slug, kind: cfg.kind });
   const setColor = (k, v) => setCfg(c => ({ ...c, colors: { ...c.colors, [k]: v } }));
   const price = priceOf(cfg, pricing), code = configCode(cfg);
   const activeCombo = combos.find(c => c.base === cfg.colors.base && c.pattern === cfg.colors.pattern && c.accent === cfg.colors.accent);
   const hex = id => colors.find(c => c.id === id)?.hex;
-  const mini = shape => <ProductPreview className="opt__icon" config={{ kind: 'cover', sections: 1, slots: ['blank'], shape, orientation: 'h', pattern: 'plain', colors: { ...cfg.colors, base: cfg.colors.base === 'ivory' ? 'mulberry' : cfg.colors.base } }} />;
+  const mini = shape => <ProductPreview className="opt__icon" config={{ kind: 'cover', sections: 1, slots: ['blank'], shape, orientation: 'h', pattern: 'plain', colors: { ...cfg.colors, base: light(hex(cfg.colors.base)) ? '#2D3A6A' : cfg.colors.base } }} />;
   const decorMini = shape => <ProductPreview className="opt__icon" config={{ kind: cfg.kind, shape, pattern: 'plain', colors: cfg.colors }} />;
 
   const add = () => {
     cart.add({ slug: product.slug, config: cfg, code, price, qty });
+    track('add_to_cart', { currency: 'AMD', value: price * qty, items: [{ item_id: product.slug, item_name: product.name?.en || product.slug, item_variant: code, item_category: product.category, price, quantity: qty }] });
     setAdded(true); setTimeout(() => setAdded(false), 1800);
     cart.setOpen(true);
   };
   const copy = async () => {
+    track('copy_design_code', { product: product.slug });
     try { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* clipboard blocked */ }
   };
 
@@ -64,20 +84,20 @@ export default function Product() {
         <nav className="crumbs" aria-label="Breadcrumb"><Link to={t.path('/catalog')}>{t('p.back')}</Link><span aria-hidden="true">/</span><span>{t.pick(product.name)}</span></nav>
         <div className="product__grid">
           <div className="product__stage">
-            <div className={`stage field--${fieldFor(cfg.colors.base, 'periwinkle')}`}>
+            <div className="stage stage--neutral">
               <ProductPreview config={cfg} className="stage__img" title={t.pick(product.name)} />
             </div>
             <div className="combos">
               <span className="field__label">{t('p.combos')}</span>
-              <div className="combos__row">
+              <div className="combos__row palettes">
                 {combos.map(c => (
-                  <button key={c.id} className={`combo${activeCombo?.id === c.id ? ' on' : ''}`} title={t.pick(c.name)} aria-label={t.pick(c.name)} aria-pressed={activeCombo?.id === c.id}
-                    onClick={() => set({ colors: { base: c.base, pattern: c.pattern, accent: c.accent } })}>
-                    <span style={{ '--a': hex(c.base), '--b': hex(c.pattern), '--c': hex(c.accent) }} />
+                  <button key={c.id} className={`pal${activeCombo?.id === c.id ? ' on' : ''}`} aria-pressed={activeCombo?.id === c.id}
+                    onClick={() => { log('color_pair', c.id); set({ colors: { base: c.base, pattern: c.pattern, accent: c.accent } }); }}>
+                    <Palette colors={[hex(c.base), hex(c.pattern), hex(c.accent)]} />
+                    <span className="pal__name">{t.pick(c.name)}</span>
                   </button>
                 ))}
               </div>
-              {activeCombo && <span className="combos__name">{t.pick(activeCombo.name)}</span>}
             </div>
           </div>
 
@@ -87,69 +107,71 @@ export default function Product() {
 
             <div className="panel">
               <div className="tabs" role="tablist">
-                {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} className={`tab${tab === id ? ' on' : ''}`} onClick={() => setTab(id)}>{label}</button>)}
+                {tabs.map(([id, label], i) => <button key={id} role="tab" aria-selected={tab === id} className={`tab${tab === id ? ' on' : ''}`} onClick={() => { track('configurator_tab', { tab: id, product: product.slug }); setTab(id); }}><span className="tab__no" aria-hidden="true">{i + 1}</span>{label}</button>)}
               </div>
 
               {tab === 'shape' && cover && <div className="tabpanel">
-                <div className="field"><span className="field__label">{t('p.sections')}</span>
-                  <Opts label={t('p.sections')} value={cfg.sections} onChange={n => set({ sections: n })}
+                <div className="field"><Head icon="layers">{t('p.sections')}</Head>
+                  <Opts className="opts--seg" label={t('p.sections')} value={cfg.sections} onChange={n => { log('sections', n); set({ sections: n }); }}
                     options={[1, 2, 3, 4].map(n => ({ id: n, label: n === 1 ? t('p.section1') : t('p.sectionN', { n }) }))} /></div>
-                <div className="field"><span className="field__label">{t('p.shape')}</span>
-                  <Opts className="opts--tiles" label={t('p.shape')} value={cfg.shape} onChange={s => set({ shape: s })}
+                <div className="field"><Head icon="shape">{t('p.shape')}</Head>
+                  <Opts className="opts--tiles" label={t('p.shape')} value={cfg.shape} onChange={s => { log('shape', s); set({ shape: s }); }}
                     options={COVER_SHAPES.map(s => ({ id: s.id, label: t.pick(s.name), icon: mini(s.id) }))} /></div>
                 {Array.from({ length: cfg.sections }, (_, i) => (
-                  <div className="field" key={i}><span className="field__label">{t('p.sectionLabel', { n: i + 1 })}</span>
-                    <Opts label={t('p.sectionLabel', { n: i + 1 })} value={cfg.slots[i]} onChange={v => set({ slots: cfg.slots.map((s, j) => j === i ? v : s) })}
+                  <div className="field field--card" key={i}><Head icon="sliders">{t('p.sectionLabel', { n: i + 1 })}</Head>
+                    <Opts className="opts--seg" label={t('p.sectionLabel', { n: i + 1 })} value={cfg.slots[i]} onChange={v => { log(`section_${i + 1}`, v); set({ slots: cfg.slots.map((s, j) => j === i ? v : s) }); }}
                       options={SECTION_TYPES.map(s => ({ id: s.id, label: t.pick(s.name) }))} /></div>
                 ))}
-                {cfg.sections > 1 && <div className="seg" role="radiogroup" aria-label="Orientation">
-                  {[['h', t('p.h')], ['v', t('p.v')]].map(([id, label]) => <button key={id} role="radio" aria-checked={cfg.orientation === id} className={cfg.orientation === id ? 'on' : ''} onClick={() => set({ orientation: id })}>{label}</button>)}
-                </div>}
+                {cfg.sections > 1 && <div className="field"><Head icon="turn">{t('p.orientation')}</Head>
+                  <Opts className="opts--seg opts--narrow" label={t('p.orientation')} value={cfg.orientation} onChange={v => { log('orientation', v); set({ orientation: v }); }}
+                    options={[{ id: 'h', label: t('p.h'), icon: <span className="orient orient--h" aria-hidden="true"><i /><i /></span> }, { id: 'v', label: t('p.v'), icon: <span className="orient orient--v" aria-hidden="true"><i /><i /></span> }]} /></div>}
               </div>}
 
               {tab === 'shape' && !cover && <div className="tabpanel">
-                <div className="field"><span className="field__label">{t('p.shape')}</span>
-                  <Opts className="opts--tiles" label={t('p.shape')} value={cfg.shape} onChange={s => set({ shape: s })}
+                <div className="field"><Head icon="shape">{t('p.shape')}</Head>
+                  <Opts className="opts--tiles" label={t('p.shape')} value={cfg.shape} onChange={s => { log('shape', s); set({ shape: s }); }}
                     options={(DECOR_SHAPES[cfg.kind] || []).map(s => ({ id: s.id, label: t.pick(s.name), icon: decorMini(s.id) }))} /></div>
-                <div className="field"><span className="field__label">{t('p.size')}</span>
-                  <Opts label={t('p.size')} value={cfg.size} onChange={s => set({ size: s })}
+                <div className="field"><Head icon="layers">{t('p.size')}</Head>
+                  <Opts className="opts--seg" label={t('p.size')} value={cfg.size} onChange={s => { log('size', s); set({ size: s }); }}
                     options={(DECOR_SIZES[cfg.kind] || []).map(s => ({ id: s.id, label: `${s.id.toUpperCase()} · ${s.dims}` }))} /></div>
               </div>}
 
               {tab === 'pattern' && <div className="tabpanel">
-                <div className="field"><span className="field__label">{t('p.pattern')}</span>
-                  <Opts className="opts--tiles" label={t('p.pattern')} value={cfg.pattern} onChange={p => set({ pattern: p })}
+                <div className="field"><Head icon="pattern">{t('p.pattern')}</Head>
+                  <Opts className="opts--tiles opts--grid4" label={t('p.pattern')} value={cfg.pattern} onChange={p => { log('pattern', p); set({ pattern: p }); }}
                     options={PATTERNS.map(p => ({ id: p.id, label: t.pick(p.name), icon: <ProductPreview className="opt__icon" config={{ ...cfg, ...(cover ? { sections: 1, slots: ['blank'], shape: 'square' } : {}), pattern: p.id }} /> }))} /></div>
               </div>}
 
               {tab === 'colors' && <div className="tabpanel">
-                <Swatches label={t('p.base')} value={cfg.colors.base} onChange={v => setColor('base', v)} />
-                {cfg.pattern !== 'plain' && <Swatches label={t('p.patColor')} value={cfg.colors.pattern} onChange={v => setColor('pattern', v)} />}
-                <Swatches label={t(`p.accent.${cfg.kind}`)} value={cfg.colors.accent} onChange={v => setColor('accent', v)} />
+                <Swatches label={t('p.base')} value={cfg.colors.base} onChange={v => { log('color_base', v); setColor('base', v); }} />
+                {cfg.pattern !== 'plain' && <Swatches label={t('p.patColor')} value={cfg.colors.pattern} onChange={v => { log('color_pattern', v); setColor('pattern', v); }} />}
+                <Swatches label={t(`p.accent.${cfg.kind}`)} value={cfg.colors.accent} onChange={v => { log('color_accent', v); setColor('accent', v); }} />
               </div>}
 
               {tab === 'levers' && cover && <div className="tabpanel">
                 <p className="small">{t('p.leversNote', { price: formatAMD(pricing.lever || 0, t.lang) })}</p>
                 {!keyList.length && <p className="small">{t('p.leversNone')}</p>}
                 {keyList.map(([i, j], idx) => (
-                  <div className="field" key={`${i}-${j}`}><span className="field__label">{t('p.leverLabel', { s: i + 1, k: j + 1 })}</span>
+                  <div className="field field--card" key={`${i}-${j}`}><Head icon="lever">{t('p.leverLabel', { s: i + 1, k: j + 1 })}</Head>
                     <Opts className="opts--tiles opts--levers" label={t('p.leverLabel', { s: i + 1, k: j + 1 })} value={normLevers(cfg.levers)[i][j]}
-                      onChange={v => setLevers((a, b, old) => a === i && b === j ? v : old)} options={leverOpts} />
-                    {idx === 0 && keyList.length > 1 && <button type="button" className="lever-all" onClick={() => { const v = normLevers(cfg.levers)[i][j]; setLevers(() => v); }}>{t('p.leverAll')}</button>}
+                      onChange={v => { log(`lever_s${i + 1}_k${j + 1}`, v); setLevers((a, b, old) => a === i && b === j ? v : old); }} options={leverOpts} />
+                    {idx === 0 && keyList.length > 1 && <button type="button" className="lever-all" onClick={() => { const v = normLevers(cfg.levers)[i][j]; log('lever_all', v); setLevers(() => v); }}>{t('p.leverAll')}</button>}
                   </div>
                 ))}
               </div>}
 
-              <button className="reset" onClick={() => setCfg(start)}>{t('p.reset')}</button>
+              <div className="panel__foot">
+                <div className="buy__price"><b>{formatAMD(price, t.lang)}</b><span>{t('p.perItem')}</span></div>
+                <button className="reset" onClick={() => { track('configurator_reset', { product: product.slug }); setCfg(start); }}><Icon name="reset" />{t('p.reset')}</button>
+              </div>
             </div>
 
             <div className="buy">
-              <div className="buy__price"><b>{formatAMD(price, t.lang)}</b><span>{t('p.perItem')}</span></div>
               <div className="buy__row">
                 <div className="qty qty--lg" aria-label={t('cart.qty')}>
                   <button onClick={() => setQty(q => Math.max(1, q - 1))} aria-label="−">−</button><span>{qty}</span><button onClick={() => setQty(q => q + 1)} aria-label="+">+</button>
                 </div>
-                <button className="btn btn--ink btn--wide" onClick={add}>{added ? t('p.added') : `${t('p.add')} · ${formatAMD(price * qty, t.lang)}`}</button>
+                <button className="btn btn--ink btn--wide" onClick={add}>{added ? t('p.added') : t('p.add')}</button>
               </div>
               <div className="code"><span className="field__label">{t('p.code')}</span><code>{code}</code><button onClick={copy}>{copied ? t('p.copied') : t('p.copy')}</button></div>
               {cover && <p className="small">{t('p.measure')} <Link to={t.path('/guide')}>{t('p.measureLink')} →</Link></p>}

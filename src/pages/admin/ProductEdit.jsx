@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase.js';
 import { useCatalog } from '../../lib/catalog.jsx';
-import { fieldFor, formatAMD, initialConfig, priceOf } from '../../lib/config.js';
+import { formatAMD, initialConfig, priceOf } from '../../lib/config.js';
 import { COVER_SHAPES, DECOR_SHAPES, DECOR_SIZES, PATTERNS, SECTION_TYPES } from '../../data/seed.js';
 import ProductPreview from '../../components/ProductPreview.jsx';
 import { Opts } from '../../components/Options.jsx';
@@ -78,7 +78,7 @@ export default function ProductEdit() {
       <Link className="linkish" to="..">← All products</Link>
       <div className="pedit__grid">
         <div className="pedit__stage">
-          <div className={`stage field--${fieldFor(cfg.colors.base, 'periwinkle')}`}><ProductPreview config={cfg} className="stage__img" /></div>
+          <div className="stage stage--neutral"><ProductPreview config={cfg} className="stage__img" /></div>
           <p className="small">Starting price: <b>{formatAMD(priceOf(cfg, pricing), 'en')}</b>. Customers can change everything in the configurator; these are the starting choices.</p>
           {!isNew && p.published && <p className="small"><a href={`/en/product/${p.slug}`} target="_blank" rel="noreferrer">Open on the site ↗</a></p>}
         </div>

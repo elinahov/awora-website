@@ -2,10 +2,22 @@
 <html lang="hy">
 <head>
 <meta charset="utf-8">
+<!-- Google Analytics (GA4). Skipped on localhost so development clicks don't count. -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  if (!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+    var s = document.createElement('script'); s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-5XRT2R2Z4P';
+    document.head.appendChild(s);
+    gtag('js', new Date());
+    gtag('config', 'G-5XRT2R2Z4P');
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Awora — Objects that make you smile</title>
 <meta name="description" content="Awora makes colorful switch covers and small home objects you customize: pick a shape, a pattern and your colors.">
-<meta name="theme-color" content="#FFF9EF">
+<meta name="theme-color" content="#FFFBF3">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

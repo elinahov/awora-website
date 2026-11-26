@@ -34,23 +34,43 @@ const DECOR = {
   arch: () => 'M38 160V82A62 62 0 0 1 162 82V160Q162 166 156 166H44Q38 166 38 160Z'
 };
 
-const BLOB_A = 'M8 60C2 36 22 12 48 18c14 3 18 18 32 16 18-3 30 8 26 26-5 22-30 22-46 30-18 9-46 0-52-30Z';
-const BLOB_B = 'M10 40C14 14 46 4 62 20c8 8 6 22 18 30 14 10 10 34-8 38-24 6-40-10-54-20C8 62 8 52 10 40Z';
 
-function PatternFill({ id, kind, w, h, color }) {
+// Shapes for the patterns, drawn around (0, 0).
+// Daisy: five round petals; the centre shows the main color.
+const daisy = (r, base, color) => <g>
+  {Array.from({ length: 5 }, (_, i) => { const t = -Math.PI / 2 + i * 2 * Math.PI / 5; return <circle key={i} cx={f(.55 * r * Math.cos(t))} cy={f(.55 * r * Math.sin(t))} r={f(.45 * r)} fill={color} />; })}
+  <circle r={f(.22 * r)} fill={base} />
+</g>;
+// Four-point sparkle with curved sides.
+const sparkle = r => { const k = r * .18; return `M0 ${-r}Q${k} ${-k} ${r} 0Q${k} ${k} 0 ${r}Q${-k} ${k} ${-r} 0Q${-k} ${-k} 0 ${-r}Z`; };
+
+function PatternFill({ id, kind, w, h, color, base }) {
   switch (kind) {
-    case 'waves': {
-      const sw = Math.max(h, w) * .075, per = 64;
-      const wave = y0 => { let d = `M${-per} ${y0}`; for (let x = -per; x < w + per; x += per) d += `q${per / 4} -10 ${per / 2} 0t${per / 2} 0`; return d; };
+    case 'waves': { // even, smooth wavy stripes at a fixed size, so long covers look the same as short ones
+      const per = 68, amp = 7, gap = 38, sw = 12;
+      const x0 = -BLEED - per, n = Math.ceil((w + 2 * BLEED + 2 * per) / per);
+      const wave = y => `M${x0} ${y}q${per / 4} ${-2 * amp} ${per / 2} 0` + `t${per / 2} 0`.repeat(n * 2 - 1);
+      const rows = Array.from({ length: Math.ceil((h + 2 * BLEED) / gap) + 1 }, (_, i) => -BLEED + i * gap);
       return <g fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round">
-        {[.28, .58, .88].map((k, i) => <path key={i} d={wave(h * k)} transform={`translate(${i * 14} 0)`} />)}
+        {rows.map(y => <path key={y} d={wave(y)} />)}
       </g>;
     }
-    case 'blobs':
-      return <g fill={color}>
-        <path d={BLOB_A} transform={`translate(${-w * .08} ${h * .42}) scale(${Math.min(w, h) * .0085})`} />
-        <path d={BLOB_B} transform={`translate(${w * .62} ${-h * .12}) scale(${Math.min(w, h) * .0062})`} />
-      </g>;
+    case 'flowers': // daisies on a staggered grid, slightly turned
+      return <><defs><pattern id={id} width="58" height="58" patternUnits="userSpaceOnUse" patternTransform="translate(6 4)">
+        <g transform="translate(14 14) rotate(8)">{daisy(13, base, color)}</g>
+        <g transform="translate(43 43) rotate(-14)">{daisy(13, base, color)}</g>
+      </pattern></defs><rect x={-BLEED} y={-BLEED} width={w + 2 * BLEED} height={h + 2 * BLEED} fill={`url(#${id})`} /></>;
+    case 'grid': // thin lines, like a notebook grid
+      return <><defs><pattern id={id} width="34" height="34" patternUnits="userSpaceOnUse" patternTransform="translate(9 9)">
+        <path d="M0 0H34M0 0V34" stroke={color} strokeWidth="2.4" fill="none" />
+      </pattern></defs><rect x={-BLEED} y={-BLEED} width={w + 2 * BLEED} height={h + 2 * BLEED} fill={`url(#${id})`} /></>;
+    case 'sparkles': // scattered four-point sparkles in two sizes
+      return <><defs><pattern id={id} width="64" height="64" patternUnits="userSpaceOnUse">
+        <path d={sparkle(11)} transform="translate(16 18)" fill={color} />
+        <path d={sparkle(6)} transform="translate(46 12)" fill={color} />
+        <path d={sparkle(8)} transform="translate(44 46)" fill={color} />
+        <path d={sparkle(4.5)} transform="translate(14 50)" fill={color} />
+      </pattern></defs><rect x={-BLEED} y={-BLEED} width={w + 2 * BLEED} height={h + 2 * BLEED} fill={`url(#${id})`} /></>;
     case 'stripes':
       return <><defs><pattern id={id} width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="9" height="20" fill={color} /></pattern></defs><rect x={-BLEED} y={-BLEED} width={w + 2 * BLEED} height={h + 2 * BLEED} fill={`url(#${id})`} /></>;
     case 'dots':
@@ -115,7 +135,7 @@ export default function ProductPreview({ config, className, title }) {
       <svg className={className} viewBox={`${-pad} ${-pad} ${W + 2 * pad} ${H + 2 * pad}`} role="img" aria-label={title}>
         <defs><clipPath id={`c${uid}`}><path d={d} transform={tf} /></clipPath></defs>
         <path d={d} transform={tf} fill={base} stroke={EDGE} strokeWidth="1" />
-        <g clipPath={`url(#c${uid})`}><PatternFill id={`p${uid}`} kind={config.pattern} w={W} h={H} color={pat} /></g>
+        <g clipPath={`url(#c${uid})`}><PatternFill id={`p${uid}`} kind={config.pattern} w={W} h={H} color={pat} base={base} /></g>
         {config.slots.slice(0, n).map((t, i) => {
           const cx = v ? M + CELL / 2 : M + CELL * (i + .5), cy = v ? M + CELL * (i + .5) : M + CELL / 2;
           return <Insert key={i} type={t} cx={cx} cy={cy} fill={acc} levers={config.levers?.[i]} />;
@@ -138,7 +158,7 @@ export default function ProductPreview({ config, className, title }) {
       <path d={outer} fill={side} transform="translate(0 7)" />
       <path d={outer} fill={base} />
       {config.kind !== 'mirror' || config.pattern !== 'plain'
-        ? <g clipPath={`url(#c${uid})`}><PatternFill id={`p${uid}`} kind={config.pattern} w={W} h={H} color={pat} /></g> : null}
+        ? <g clipPath={`url(#c${uid})`}><PatternFill id={`p${uid}`} kind={config.pattern} w={W} h={H} color={pat} base={base} /></g> : null}
       {config.kind === 'tray' && <>
         <path d={outer} transform={innerT} fill={acc} />
         <path d={outer} transform={innerT} fill="none" stroke={side} strokeWidth="5" opacity=".35" />

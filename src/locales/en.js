@@ -112,6 +112,7 @@ export default {
   "p.sectionN": "{n} sections",
   "p.shape": "Shape",
   "p.sectionLabel": "Section {n}",
+  "p.orientation": "Orientation",
   "p.h": "Horizontal",
   "p.v": "Vertical",
   "p.reset": "Reset design",
@@ -168,7 +169,7 @@ export default {
   "guide.del.d": "Delivery options and prices will be listed here when ordering opens.",
 
   "bar.1": "Ordering is open. No payment at checkout",
-  "bar.2": "12 colors · 6 shapes · 6 patterns",
+  "bar.2": "12 colors · 6 shapes · 8 patterns",
   "bar.3": "Every cover is made to your measurements",
 
   "stick.drag": "drag me",
@@ -293,5 +294,21 @@ export default {
   "st.in_production": "Printing",
   "st.shipped": "On the way",
   "st.delivered": "Delivered",
-  "st.cancelled": "Cancelled"
+  "st.cancelled": "Cancelled",
+
+  "seo.home.title": "Awora — Custom switch covers & home objects, 3D-printed in Armenia",
+  "seo.home.desc": "Design your own switch and socket covers: {shapes} shapes, {patterns} patterns, {colors} colors. 3D-printed to your measurements, from {price}. No electrician needed.",
+  "seo.catalog.title": "Switch covers, socket covers & home objects — Catalog | Awora",
+  "seo.catalog.desc": "Browse {n} designs: one- to four-section switch and socket covers, trays, frames and a mirror. Open any design and change its shape, pattern and colors.",
+  "seo.guide.title": "How to measure your switch or socket for a cover | Awora",
+  "seo.guide.desc": "Measure your switch or socket frame in a minute so your Awora cover fits, and see how ordering and delivery work.",
+  "seo.product.title": "{name} — custom {kind} | Awora",
+  "seo.product.desc": "{blurb} Choose the shape, pattern and colors. From {price}, made to order.",
+  "seo.kind.switch": "switch cover",
+  "seo.kind.socket": "socket cover",
+  "seo.kind.mixed": "switch & socket cover",
+  "seo.kind.tray": "tray",
+  "seo.kind.frame": "photo frame",
+  "seo.kind.mirror": "mirror",
+  "seo.crumb.home": "Home"
 };

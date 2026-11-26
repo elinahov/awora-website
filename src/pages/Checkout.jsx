@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '../i18n.jsx';
 import { useCart } from '../cart.jsx';
+import { track } from '../lib/analytics.js';
 import { useAuth } from '../lib/auth.jsx';
 import { useCatalog } from '../lib/catalog.jsx';
 import { formatAMD, priceOf } from '../lib/config.js';
@@ -48,6 +49,9 @@ export default function Checkout() {
       });
       const body = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(r.status === 503 ? t('co.unavailable') : body.error || t('auth.err.generic'));
+      // Order placed (no online payment): reported to Google Analytics as a purchase.
+      track('purchase', { transaction_id: String(body.number), currency: 'AMD', value: body.total ?? total,
+        items: lines.map(l => ({ item_id: l.slug, item_name: l.product?.name?.en || l.slug, item_variant: l.code, price: l.price, quantity: l.qty })) });
       setDone(body.number);
       cart.clear();
       scrollTo(0, 0);
