@@ -13,8 +13,8 @@ const coverType = p => {
 };
 
 const CAT_FLIGHTS = [
-  { anchor: '.catalog', obj: 'airballoon', pair: ['#B9C8EE', '#F3BDD0'], w: 110, pts: [[0, 108, 70], [.3, 95, 40], [.7, 97, 20], [1, 110, -10]] },
-  { anchor: '.catalog', obj: 'butterfly', pair: ['#F5D47E', '#EF704F'], w: 80, pts: [[.2, -10, 90], [.5, 3, 60], [.85, 2, 26], [1, -12, 6]] }
+  { anchor: '.catalog', obj: 'airballoon', pair: ['#A9B5CD', '#DDA9AE'], w: 110, pts: [[0, 108, 70], [.3, 95, 40], [.7, 97, 20], [1, 110, -10]] },
+  { anchor: '.catalog', obj: 'butterfly', pair: ['#B9C6A2', '#526B9B'], w: 80, pts: [[.2, -10, 90], [.5, 3, 60], [.85, 2, 26], [1, -12, 6]] }
 ];
 
 // Tiny flat icons for the filter chips (currentColor).

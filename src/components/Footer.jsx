@@ -14,7 +14,7 @@ export default function Footer() {
         <div className="footer__brand">
           <AWMark className="footer__aw" />
           <svg className="footer__ribbon" viewBox="0 0 600 140" aria-hidden="true">
-            <path d={ribbon} fill="none" stroke="#F3BDD0" strokeWidth="58" strokeLinecap="round" />
+            <path d={ribbon} fill="none" stroke="#DDA9AE" strokeWidth="58" strokeLinecap="round" />
             <defs><path id="footRibbon" d={ribbon} /></defs>
             <text><textPath href="#footRibbon" startOffset="50%" textAnchor="middle" dominantBaseline="central">OBJECTS FOR HAPPY SPACES</textPath></text>
           </svg>

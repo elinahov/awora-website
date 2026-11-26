@@ -4,7 +4,7 @@ import { reducedMotion } from '../lib/motion.js';
 /* Awora shape kit: thick flat ribbons that draw themselves in, draggable sticker pills,
    an arched text badge, half-moons and count-up numbers. Solid fills only (brand book). */
 
-const C = { mulberry: '#641C35', persimmon: '#EF704F', petal: '#F3BDD0', periwinkle: '#B9C8EE', ivory: '#FFF9EF', butter: '#F5D47E', mint: '#BFE0CB', lilac: '#CDBDEB' };
+const C = { mulberry: '#641C35', persimmon: '#526B9B', petal: '#DDA9AE', periwinkle: '#A9B5CD', ivory: '#F3EDE4', butter: '#B9C6A2', mint: '#D5DCC6', lilac: '#E9CFCF' };
 
 // smooth open curve through points (Catmull-Rom → cubic Bézier)
 export function smoothOpen(pts) {

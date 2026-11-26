@@ -53,7 +53,7 @@ function orderEmail(order, colorsById) {
       ${line('Name', order.name)}${line('Phone', order.phone)}${line('Email', order.email)}${line('City', order.city)}${line('Address', order.address)}${line('Note', order.note)}
     </table>
     <table style="width:100%;border-collapse:collapse;font-size:14px">
-      <tr style="text-align:left;background:#FFF9EF"><th style="padding:8px">Item</th><th style="padding:8px">Qty</th><th style="padding:8px;text-align:right">Sum</th></tr>
+      <tr style="text-align:left;background:#F3EDE4"><th style="padding:8px">Item</th><th style="padding:8px">Qty</th><th style="padding:8px;text-align:right">Sum</th></tr>
       ${rows}
       <tr><td colspan="2" style="padding:12px 8px;text-align:right"><b>Total</b></td><td style="padding:12px 8px;text-align:right"><b>${esc(formatAMD(order.total, 'en'))}</b></td></tr>
     </table>

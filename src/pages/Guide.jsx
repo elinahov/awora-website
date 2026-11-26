@@ -5,13 +5,13 @@ import { useReveal } from '../lib/motion.js';
 function Diagram() {
   return (
     <svg className="guide__svg" viewBox="0 0 320 240" aria-hidden="true">
-      <rect x="60" y="40" width="160" height="160" rx="14" fill="#F3BDD0" />
-      <rect x="105" y="80" width="70" height="80" rx="8" fill="#FFF9EF" stroke="#2D3A6A" strokeWidth="2" />
+      <rect x="60" y="40" width="160" height="160" rx="14" fill="#DDA9AE" />
+      <rect x="105" y="80" width="70" height="80" rx="8" fill="#F3EDE4" stroke="#2D3A6A" strokeWidth="2" />
       <g stroke="#2D3A6A" strokeWidth="2" fill="none" strokeLinecap="round">
         <path d="M60 22H220M60 16v12M220 16v12" /><path d="M238 40V200M232 40h12M232 200h12" />
         <path d="M105 176H175M105 170v12M175 170v12" strokeDasharray="4 4" />
       </g>
-      <rect x="262" y="60" width="16" height="140" rx="4" fill="#EF704F" />
+      <rect x="262" y="60" width="16" height="140" rx="4" fill="#526B9B" />
       <g fill="#2D3A6A" fontFamily="Noto Sans, sans-serif" fontSize="14" fontWeight="700">
         <text x="140" y="14" textAnchor="middle">A</text><text x="252" y="125">B</text>
         <text x="140" y="198" textAnchor="middle">C</text><text x="290" y="135">E</text>

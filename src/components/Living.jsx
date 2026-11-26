@@ -7,7 +7,7 @@ import { clamp, isMobile, reducedMotion } from '../lib/motion.js';
    - motes: a few small objects spawned only while scrolling, mostly in the side margins.
    Solid fills only, no shadows, outlines or sparkles. */
 
-const C = { mulberry: '#641C35', persimmon: '#EF704F', petal: '#F3BDD0', periwinkle: '#B9C8EE', ivory: '#FFF9EF', butter: '#F5D47E', mint: '#BFE0CB', lilac: '#CDBDEB' };
+const C = { mulberry: '#641C35', persimmon: '#526B9B', petal: '#DDA9AE', periwinkle: '#A9B5CD', ivory: '#F3EDE4', butter: '#B9C6A2', mint: '#D5DCC6', lilac: '#E9CFCF' };
 
 // each object is drawn in a 100x100 box from a main color (a) and a second color (b)
 const OBJECTS = {
@@ -24,13 +24,13 @@ const OBJECTS = {
     <path d="M50 4C40 4 34 22 35 40c1 16 5 26 7 34h16c2-8 6-18 7-34C66 22 60 4 50 4Z" fill="${b}"/>
     <path d="M50 4C47 4 45 22 45.5 40c.5 16 1.5 26 2 34h5c.5-8 1.5-18 2-34C55 22 53 4 50 4Z" fill="${a}"/>
     <rect x="41" y="85" width="18" height="12" rx="3" fill="${C.mulberry}"/>`,
-  flower: (a, b) => `<path d="M50 60c0 14-2 24-8 36" fill="none" stroke="#7FB894" stroke-width="3.5" stroke-linecap="round"/>
-    <path d="M47 84c-12-2-18-10-18-16 8 0 16 6 18 16Z" fill="#7FB894"/>
+  flower: (a, b) => `<path d="M50 60c0 14-2 24-8 36" fill="none" stroke="#8C9A74" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M47 84c-12-2-18-10-18-16 8 0 16 6 18 16Z" fill="#8C9A74"/>
     ${[0, 60, 120, 180, 240, 300].map(r => `<ellipse cx="50" cy="18" rx="11" ry="15" fill="${a}" transform="rotate(${r} 50 38)"/>`).join('')}
     <circle cx="50" cy="38" r="11" fill="${b}"/><circle cx="46" cy="36" r="1.8" fill="${C.mulberry}"/><circle cx="54" cy="36" r="1.8" fill="${C.mulberry}"/>
     <path d="M46 41c2 2.4 6 2.4 8 0" fill="none" stroke="${C.mulberry}" stroke-width="1.6" stroke-linecap="round"/>`
 };
-// color pairs that read well on ivory
+// color pairs that read well on linen
 const PAIRS = [[C.persimmon, C.butter], [C.periwinkle, C.petal], [C.petal, C.persimmon], [C.butter, C.persimmon], [C.lilac, C.mint], [C.mint, C.periwinkle]];
 const draw = (kind, [a, b]) => `<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" class="obj obj--${kind}">${OBJECTS[kind](a, b)}</svg>`;
 
