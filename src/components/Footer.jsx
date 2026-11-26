@@ -23,7 +23,7 @@ export default function Footer() {
           <h3>{t('footer.shop')}</h3>
           <Link to={t.path('/catalog?category=cover')}>{t('cat.covers')}</Link>
           <Link to={t.path('/catalog?category=decor')}>{t('cat.decor')}</Link>
-          <Link to={t.path('/product/cookie-duo')}>{t('nav.build')}</Link>
+          <Link to={t.path('/product/clover-duo')}>{t('nav.build')}</Link>
         </nav>
         <nav className="footer__col" aria-label={t('footer.info')}>
           <h3>{t('footer.info')}</h3>

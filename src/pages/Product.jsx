@@ -3,9 +3,9 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useT } from '../i18n.jsx';
 import { useCatalog } from '../lib/catalog.jsx';
 import { useCart } from '../cart.jsx';
-import { configCode, fieldFor, formatAMD, initialConfig, priceOf } from '../lib/config.js';
-import { COVER_SHAPES, DECOR_SHAPES, DECOR_SIZES, PATTERNS, SECTION_TYPES } from '../data/seed.js';
-import ProductPreview from '../components/ProductPreview.jsx';
+import { configCode, fieldFor, formatAMD, initialConfig, keysIn, normLevers, priceOf } from '../lib/config.js';
+import { COVER_SHAPES, DECOR_SHAPES, DECOR_SIZES, LEVER_SHAPES, PATTERNS, SECTION_TYPES } from '../data/seed.js';
+import ProductPreview, { LeverIcon } from '../components/ProductPreview.jsx';
 import { Opts, Swatches } from '../components/Options.jsx';
 
 export default function Product() {
@@ -49,7 +49,14 @@ export default function Product() {
     try { await navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* clipboard blocked */ }
   };
 
-  const tabs = [['shape', t('p.tab.shape')], ['pattern', t('p.tab.pattern')], ['colors', t('p.tab.colors')]];
+  const tabs = [['shape', t('p.tab.shape')], ['pattern', t('p.tab.pattern')], ['colors', t('p.tab.colors')], ...(cover ? [['levers', t('p.tab.levers')]] : [])];
+  // Topper icons use the key color, or the cover color when the key color is too pale to see on a tile.
+  const light = h => { const n = parseInt((h || '#000').slice(1), 16); return (0.3 * (n >> 16) + 0.59 * (n >> 8 & 255) + 0.11 * (n & 255)) > 200; };
+  const leverInk = light(hex(cfg.colors.accent)) ? (light(hex(cfg.colors.base)) ? '#2D3A6A' : hex(cfg.colors.base)) : hex(cfg.colors.accent);
+  // [section, key] for every switch key on the cover
+  const keyList = cover ? cfg.slots.slice(0, cfg.sections).flatMap((slot, i) => Array.from({ length: keysIn(slot) }, (_, j) => [i, j])) : [];
+  const setLevers = fn => setCfg(c => ({ ...c, levers: normLevers(c.levers).map((row, i) => row.map((v, j) => fn(i, j, v))) }));
+  const leverOpts = LEVER_SHAPES.map(l => ({ id: l.id, label: t.pick(l.name), icon: <LeverIcon className="opt__icon" id={l.id} fill={leverInk} /> }));
 
   return (
     <section className="product page-pad">
@@ -119,6 +126,18 @@ export default function Product() {
                 <Swatches label={t('p.base')} value={cfg.colors.base} onChange={v => setColor('base', v)} />
                 {cfg.pattern !== 'plain' && <Swatches label={t('p.patColor')} value={cfg.colors.pattern} onChange={v => setColor('pattern', v)} />}
                 <Swatches label={t(`p.accent.${cfg.kind}`)} value={cfg.colors.accent} onChange={v => setColor('accent', v)} />
+              </div>}
+
+              {tab === 'levers' && cover && <div className="tabpanel">
+                <p className="small">{t('p.leversNote', { price: formatAMD(pricing.lever || 0, t.lang) })}</p>
+                {!keyList.length && <p className="small">{t('p.leversNone')}</p>}
+                {keyList.map(([i, j], idx) => (
+                  <div className="field" key={`${i}-${j}`}><span className="field__label">{t('p.leverLabel', { s: i + 1, k: j + 1 })}</span>
+                    <Opts className="opts--tiles opts--levers" label={t('p.leverLabel', { s: i + 1, k: j + 1 })} value={normLevers(cfg.levers)[i][j]}
+                      onChange={v => setLevers((a, b, old) => a === i && b === j ? v : old)} options={leverOpts} />
+                    {idx === 0 && keyList.length > 1 && <button type="button" className="lever-all" onClick={() => { const v = normLevers(cfg.levers)[i][j]; setLevers(() => v); }}>{t('p.leverAll')}</button>}
+                  </div>
+                ))}
               </div>}
 
               <button className="reset" onClick={() => setCfg(start)}>{t('p.reset')}</button>

@@ -1,7 +1,7 @@
 // POST /api/order — validates a checkout, recomputes prices on the server, saves the order
 // with the service role and emails the shop (ORDER_NOTIFY_EMAIL, default eleenehovak@gmail.com).
 import { clientIp, config, esc, sendEmail, serviceClient } from './_lib.js';
-import { configCode, formatAMD, mergePricing, priceOf } from '../src/lib/config.js';
+import { configCode, formatAMD, mergePricing, normLevers, priceOf } from '../src/lib/config.js';
 import { COVER_SHAPES, DECOR_SHAPES, DECOR_SIZES, PATTERNS, SECTION_TYPES } from '../src/data/seed.js';
 
 const MAX_ITEMS = 50, MAX_QTY = 20, RATE_WINDOW_MIN = 10, RATE_MAX = 5;
@@ -22,7 +22,8 @@ function cleanConfig(raw, product, colorIds) {
     const slotIds = ids(SECTION_TYPES);
     const slots = Array.from({ length: 4 }, (_, i) => slotIds.includes(raw.slots?.[i]) ? raw.slots[i] : 'k1');
     for (let i = 0; i < sections; i++) pick(raw.slots?.[i], slotIds, 'section');
-    return { kind: 'cover', sections, slots, shape: pick(raw.shape, ids(COVER_SHAPES), 'shape'), orientation: pick(raw.orientation, ['h', 'v'], 'orientation'), pattern, colors };
+    const levers = normLevers(raw.levers); // unknown topper ids fall back to 'none'
+    return { kind: 'cover', sections, slots, levers, shape: pick(raw.shape, ids(COVER_SHAPES), 'shape'), orientation: pick(raw.orientation, ['h', 'v'], 'orientation'), pattern, colors };
   }
   return {
     kind: product.kind,

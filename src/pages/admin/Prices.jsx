@@ -29,12 +29,13 @@ export default function Prices() {
 
   return (
     <div className="prices">
-      <p className="small">A cover costs: first section + each extra section + shape + pattern. An object costs: size + pattern. Orders already placed keep their prices.</p>
+      <p className="small">A cover costs: first section + each extra section + shape + pattern + each lever topper. An object costs: size + pattern. Orders already placed keep their prices.</p>
       <div className="prices__grid">
         <div className="card-box">
           <h3>Covers</h3>
           <Num label="First section" value={p.coverFirst} onChange={v => upd(x => { x.coverFirst = v; return x; })} />
           <Num label="Each extra section" value={p.coverExtra} onChange={v => upd(x => { x.coverExtra = v; return x; })} />
+          <Num label="Lever topper (each)" value={p.lever} onChange={v => upd(x => { x.lever = v; return x; })} />
           <h4>Shape surcharge</h4>
           {COVER_SHAPES.map(s => <Num key={s.id} label={s.name.en} value={p.shapes[s.id]} onChange={v => upd(x => { x.shapes[s.id] = v; return x; })} />)}
         </div>

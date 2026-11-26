@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "seed:sql": "node scripts/build-seed.mjs"
+    "seed:sql": "node scripts/build-seed.mjs",
+    "shapes": "node scripts/build-shapes.mjs",
+    "i18n:check": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",

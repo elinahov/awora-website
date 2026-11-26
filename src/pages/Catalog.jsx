@@ -13,17 +13,30 @@ const coverType = p => {
 };
 
 const CAT_FLIGHTS = [
-  { anchor: '.catalog', img: '/brand/shape-coral.png', w: 120, ar: 350 / 229, pts: [[0, 108, 70], [.3, 95, 40], [.7, 97, 20], [1, 110, -10]] },
-  { anchor: '.catalog', shape: 'blobB', fill: '#B9C8EE', w: 80, pts: [[.2, -10, 90], [.5, 3, 60], [.85, 2, 26], [1, -12, 6]] }
+  { anchor: '.catalog', obj: 'airballoon', pair: ['#B9C8EE', '#F3BDD0'], w: 110, pts: [[0, 108, 70], [.3, 95, 40], [.7, 97, 20], [1, 110, -10]] },
+  { anchor: '.catalog', obj: 'butterfly', pair: ['#F5D47E', '#EF704F'], w: 80, pts: [[.2, -10, 90], [.5, 3, 60], [.85, 2, 26], [1, -12, 6]] }
 ];
 
-function Chips({ label, value, options, onChange }) {
+// Tiny flat icons for the filter chips (currentColor).
+const Ico = {
+  all: <svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="3" /><circle cx="12" cy="12" r="3" /><circle cx="18" cy="12" r="3" /></svg>,
+  cover: <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5" /><rect x="10.3" y="8" width="3.4" height="8" rx="1.7" fill="var(--chip-bg)" /></svg>,
+  decor: <svg viewBox="0 0 24 24"><path d="M4 13C3 7 9 3 13 5s7 1 7 6-4 9-9 8-6-3-7-6Z" /></svg>,
+  switch: <svg viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="18" rx="4" /><rect x="10" y="6" width="4" height="6" rx="2" fill="var(--chip-bg)" /></svg>,
+  socket: <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><circle cx="8.5" cy="12" r="1.8" fill="var(--chip-bg)" /><circle cx="15.5" cy="12" r="1.8" fill="var(--chip-bg)" /></svg>,
+  mixed: <svg viewBox="0 0 24 24"><rect x="2" y="6" width="7" height="12" rx="3.5" /><circle cx="16.5" cy="12" r="5.5" /></svg>
+};
+const Dots = ({ n }) => <span className="chip__dots" aria-hidden="true">{Array.from({ length: n }, (_, i) => <i key={i} />)}</span>;
+
+function Chips({ label, value, options, onChange, tone, className = '' }) {
   return (
-    <div className="filter">
+    <div className={`filter filter--${tone} ${className}`}>
       <span className="filter__label">{label}</span>
       <div className="chips" role="group" aria-label={label}>
         {options.map(o => (
-          <button key={o.id} className={`chip${value === o.id ? ' on' : ''}`} aria-pressed={value === o.id} onClick={() => onChange(o.id)}>{o.label}</button>
+          <button key={o.id} className={`chip${value === o.id ? ' on' : ''}`} aria-pressed={value === o.id} onClick={() => onChange(o.id)}>
+            {o.icon && <span className="chip__icon" aria-hidden="true">{o.icon}</span>}<span>{o.label}</span>
+          </button>
         ))}
       </div>
     </div>
@@ -59,15 +72,16 @@ export default function Catalog() {
           <h1 className="h1">{t('cat.title')}</h1>
           <p className="lede">{t('cat.lede')}</p>
         </header>
-        <div className="filters">
-          <Chips label={t('cat.category')} value={f.category} onChange={v => set('category', v)}
-            options={[{ id: 'all', label: t('cat.all') }, { id: 'cover', label: t('cat.covers') }, { id: 'decor', label: t('cat.decor') }]} />
-          <Chips label={t('cat.collection')} value={f.collection} onChange={v => set('collection', v)}
-            options={[{ id: 'all', label: t('cat.all') }, ...collections.map(c => ({ id: c.id, label: t.pick(c.name) }))]} />
-          {showCoverFilters && <Chips label={t('cat.sections')} value={f.sections} onChange={v => set('sections', v)}
-            options={[{ id: 'any', label: t('cat.any') }, ...['1', '2', '3', '4'].map(n => ({ id: n, label: n }))]} />}
-          {showCoverFilters && <Chips label={t('cat.type')} value={f.type} onChange={v => set('type', v)}
-            options={[{ id: 'any', label: t('cat.any') }, { id: 'switch', label: t('cat.type.switch') }, { id: 'socket', label: t('cat.type.socket') }, { id: 'mixed', label: t('cat.type.mixed') }]} />}
+        <div className={`filters${showCoverFilters ? '' : ' filters--decor'}`}>
+          <Chips tone="petal" className="filter--category" label={t('cat.category')} value={f.category} onChange={v => set('category', v)}
+            options={[{ id: 'all', label: t('cat.all'), icon: Ico.all }, { id: 'cover', label: t('cat.covers'), icon: Ico.cover }, { id: 'decor', label: t('cat.decor'), icon: Ico.decor }]} />
+          {showCoverFilters && <Chips tone="butter" className="filter--sections" label={t('cat.sections')} value={f.sections} onChange={v => set('sections', v)}
+            options={[{ id: 'any', label: t('cat.any') }, ...['1', '2', '3', '4'].map(n => ({ id: n, label: n, icon: <Dots n={+n} /> }))]} />}
+          {showCoverFilters && <Chips tone="mint" className="filter--type" label={t('cat.type')} value={f.type} onChange={v => set('type', v)}
+            options={[{ id: 'any', label: t('cat.any') }, { id: 'switch', label: t('cat.type.switch'), icon: Ico.switch }, { id: 'socket', label: t('cat.type.socket'), icon: Ico.socket }, { id: 'mixed', label: t('cat.type.mixed'), icon: Ico.mixed }]} />}
+          <Chips tone="periwinkle" className="filter--collection" label={t('cat.collection')} value={f.collection} onChange={v => set('collection', v)}
+            options={[{ id: 'all', label: t('cat.all'), icon: Ico.all }, ...collections.map(c => ({ id: c.id, label: t.pick(c.name), icon: <i className="chip__swatch" style={{ background: `var(--${c.color})` }} /> }))]} />
+          {list.length !== products.length && <button className="filters__clear" onClick={() => setParams({}, { replace: true })}>{t('cat.reset')}</button>}
         </div>
         <p className="count">{t('cat.count', { n: list.length })}</p>
         {list.length

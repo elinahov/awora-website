@@ -28,11 +28,9 @@ export function wave(x0, y0, x1, y1, waves = 3, amp = 40, n = 12) {
 
 const SETS = {
   // soft loops around the hero edges, kept clear of the headline
-  hero: { vb: '0 0 1440 900', w: 30, paths: [
+  hero: { vb: '0 0 1440 900', w: 22, paths: [
     { c: 'periwinkle', d: smoothOpen([[-60, 640], [120, 560], [210, 700], [120, 790], [40, 700], [180, 620], [330, 760], [430, 960]]) },
-    { c: 'butter', d: smoothOpen([[1500, 560], [1360, 600], [1300, 720], [1380, 800], [1450, 720], [1360, 650], [1240, 760], [1180, 960]]) },
     { c: 'petal', d: smoothOpen([[1180, -40], [1220, 90], [1330, 120], [1360, 40], [1280, 20], [1250, 150], [1400, 230], [1520, 200]]) },
-    { c: 'mint', d: smoothOpen([[-40, 120], [90, 70], [170, 150], [110, 230], [40, 170], [150, 110], [260, 60], [300, -40]]) }
   ] },
   // the poster: four ribbons crossing a colored panel
   art: { vb: '0 0 600 700', w: 36, paths: [

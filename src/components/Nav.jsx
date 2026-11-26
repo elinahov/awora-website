@@ -56,13 +56,13 @@ export default function Nav() {
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 8Z" /><path d="M9 8V6.5a3 3 0 0 1 6 0V8" /></svg>
             {count > 0 && <b>{count}</b>}
           </button>
-          <Link className="btn btn--ink nav__cta magnet" to={t.path('/product/cookie-duo')}>{t('nav.build')}</Link>
+          <Link className="btn btn--ink nav__cta magnet" to={t.path('/product/clover-duo')}>{t('nav.build')}</Link>
           <button className="nav__burger" onClick={() => setMenu(m => !m)} aria-expanded={menu} aria-label={menu ? t('nav.close') : t('nav.menu')}><i /><i /></button>
         </div>
       </div>
       <div className="nav__sheet" hidden={!menu}>
         {links.map(l => <Link key={l.label} to={l.to}>{l.label}</Link>)}
-        <Link to={t.path('/product/cookie-duo')}>{t('nav.build')}</Link>
+        <Link to={t.path('/product/clover-duo')}>{t('nav.build')}</Link>
         {auth.available && <Link to={t.path('/account')}>{t('nav.account')}</Link>}
         {auth.isAdmin && <Link to={t.path('/admin')}>{t('nav.admin')}</Link>}
         <Link to={swap} className="nav__sheet-lang">{t('nav.lang')}</Link>

@@ -1,25 +1,15 @@
 import { useId } from 'react';
 import { useCatalog } from '../lib/catalog.jsx';
+import { CELL, M, PAD, f, leverPath, plate, smoothClosed } from '../lib/shapes.js';
 
 /* Flat SVG renderings of every product. They double as catalog images and as the
    live configurator preview, so they redraw from a config object:
    cover: { sections, slots[], shape, orientation, pattern, colors{base,pattern,accent} }
    tray|frame|mirror: { shape, pattern, colors } */
 
-const CELL = 92, M = 16, P = 20;
-const f = n => +n.toFixed(2);
+const P = 20, BLEED = 40;
 
 /* ---------- path helpers ---------- */
-function smoothClosed(pts) {
-  const n = pts.length; let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
-  for (let i = 0; i < n; i++) {
-    const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    d += `C${f(c1[0])} ${f(c1[1])} ${f(c2[0])} ${f(c2[1])} ${f(p2[0])} ${f(p2[1])}`;
-  }
-  return d + 'Z';
-}
 const polar = (cx, cy, rx, ry, n, mod = () => 1, exp = 1) => Array.from({ length: n }, (_, i) => {
   const t = i / n * Math.PI * 2 - Math.PI / 2, c = Math.cos(t), s = Math.sin(t), k = mod(t);
   return [cx + rx * k * Math.sign(c) * Math.abs(c) ** exp, cy + ry * k * Math.sign(s) * Math.abs(s) ** exp];
@@ -31,33 +21,6 @@ function lobed(pts, bulge = .62) {
     d += `A${f(r)} ${f(r)} 0 0 1 ${f(q[0])} ${f(q[1])}`;
   });
   return d + 'Z';
-}
-function arcs(x0, y0, x1, y1, n, rx, ry) {
-  let d = ''; for (let i = 1; i <= n; i++) d += `A${f(rx)} ${f(ry)} 0 0 1 ${f(x0 + (x1 - x0) * i / n)} ${f(y0 + (y1 - y0) * i / n)}`;
-  return d;
-}
-
-/* ---------- switch-cover plate outlines, drawn in a horizontal l × s frame ---------- */
-function plate(shape, l, s, n) {
-  switch (shape) {
-    case 'oval': { const b = s * .11; return `M0 ${b}Q${l / 2} ${-b} ${l} ${b}L${l} ${s - b}Q${l / 2} ${s + b} 0 ${s - b}Z`; }
-    case 'cookie': {
-      const k = n * 2 + 1, w = l / k, b = 10;
-      return `M0 0${arcs(0, 0, l, 0, k, w / 2, b)}L${l} ${s}${arcs(l, s, 0, s, k, w / 2, b)}Z`;
-    }
-    case 'cracker': {
-      const step = 11, nt = Math.round(l / step), ns = Math.round(s / step), r1 = l / nt / 2, r2 = s / ns / 2;
-      return `M0 0${arcs(0, 0, l, 0, nt, r1, r1)}${arcs(l, 0, l, s, ns, r2, r2)}${arcs(l, s, 0, s, nt, r1, r1)}${arcs(0, s, 0, 0, ns, r2, r2)}Z`;
-    }
-    case 'cartouche': {
-      const c = s * .17, L = s * .19, t = s * .075, m = l / 2;
-      return `M${c} 0L${m - 2.4 * t} 0Q${m} ${-2.4 * t} ${m + 2.4 * t} 0L${l - c} 0A${c} ${c} 0 0 0 ${l} ${c}` +
-        `C${l + L} ${c} ${l + L} ${s - c} ${l} ${s - c}A${c} ${c} 0 0 0 ${l - c} ${s}` +
-        `L${m + 2.4 * t} ${s}Q${m} ${s + 2.4 * t} ${m - 2.4 * t} ${s}L${c} ${s}A${c} ${c} 0 0 0 0 ${s - c}` +
-        `C${-L} ${s - c} ${-L} ${c} 0 ${c}A${c} ${c} 0 0 0 ${c} 0Z`;
-    }
-    default: { const r = 10; return `M${r} 0H${l - r}Q${l} 0 ${l} ${r}V${s - r}Q${l} ${s} ${l - r} ${s}H${r}Q0 ${s} 0 ${s - r}V${r}Q0 0 ${r} 0Z`; }
-  }
 }
 
 /* ---------- decor outlines in a 200 × 170 box ---------- */
@@ -89,18 +52,29 @@ function PatternFill({ id, kind, w, h, color }) {
         <path d={BLOB_B} transform={`translate(${w * .62} ${-h * .12}) scale(${Math.min(w, h) * .0062})`} />
       </g>;
     case 'stripes':
-      return <><defs><pattern id={id} width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="9" height="20" fill={color} /></pattern></defs><rect x={-P} y={-P} width={w + 2 * P} height={h + 2 * P} fill={`url(#${id})`} /></>;
+      return <><defs><pattern id={id} width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="9" height="20" fill={color} /></pattern></defs><rect x={-BLEED} y={-BLEED} width={w + 2 * BLEED} height={h + 2 * BLEED} fill={`url(#${id})`} /></>;
     case 'dots':
-      return <><defs><pattern id={id} width="19" height="19" patternUnits="userSpaceOnUse"><circle cx="9.5" cy="9.5" r="4" fill={color} /></pattern></defs><rect x={-P} y={-P} width={w + 2 * P} height={h + 2 * P} fill={`url(#${id})`} /></>;
+      return <><defs><pattern id={id} width="19" height="19" patternUnits="userSpaceOnUse"><circle cx="9.5" cy="9.5" r="4" fill={color} /></pattern></defs><rect x={-BLEED} y={-BLEED} width={w + 2 * BLEED} height={h + 2 * BLEED} fill={`url(#${id})`} /></>;
     case 'checks':
-      return <><defs><pattern id={id} width="32" height="32" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill={color} /><rect x="16" y="16" width="16" height="16" fill={color} /></pattern></defs><rect x={-P} y={-P} width={w + 2 * P} height={h + 2 * P} fill={`url(#${id})`} /></>;
+      return <><defs><pattern id={id} width="32" height="32" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill={color} /><rect x="16" y="16" width="16" height="16" fill={color} /></pattern></defs><rect x={-BLEED} y={-BLEED} width={w + 2 * BLEED} height={h + 2 * BLEED} fill={`url(#${id})`} /></>;
     default: return null;
   }
 }
 
 const EDGE = 'rgba(100,28,53,.22)';
 
-function Insert({ type, cx, cy, fill }) {
+/* Toggle switch keys: each key is a slot in the cover with a lever (or a topper on it).
+   Sizes in drawing units (1 unit ≈ 0.77 mm): slot 12 × 22 mm, toppers about 23 / 20 / 16 mm. */
+const KEY_GAP = { 1: 0, 2: 30, 3: 24 }, TOPPER = { 1: 30, 2: 26, 3: 21 };
+export function Lever({ id = 'none', cx, cy, size, fill }) {
+  if (id && id !== 'none') return <path d={leverPath(id, cx, cy, size)} fill={fill} stroke={EDGE} strokeWidth="1.2" strokeLinejoin="round" />;
+  return <g>
+    <rect x={cx - 5} y={cy - 9} width="10" height="18" rx="2.5" fill={fill} stroke={EDGE} strokeWidth="1.2" />
+    <rect x={cx - 5} y={cy - 9} width="10" height="6" rx="2.5" fill="#fff" opacity=".35" />
+  </g>;
+}
+
+function Insert({ type, cx, cy, fill, levers = [] }) {
   if (type === 'blank') return null;
   if (type === 'socket') return <g>
     <circle cx={cx} cy={cy} r="30" fill={fill} stroke={EDGE} strokeWidth="1.2" />
@@ -109,13 +83,20 @@ function Insert({ type, cx, cy, fill }) {
     <circle cx={cx - 11} cy={cy} r="4.2" fill="#3A2430" opacity=".75" />
     <circle cx={cx + 11} cy={cy} r="4.2" fill="#3A2430" opacity=".75" />
   </g>;
-  const n = +type.slice(1), gap = 4, H = 58, W = n === 1 ? 46 : (50 - gap * (n - 1)) / n;
-  const x0 = cx - (n * W + (n - 1) * gap) / 2;
-  return <g>{Array.from({ length: n }, (_, i) => {
-    const x = x0 + i * (W + gap);
-    return <g key={i}><rect x={x} y={cy - H / 2} width={W} height={H} rx={Math.min(7, W / 3)} fill={fill} stroke={EDGE} strokeWidth="1.2" />
-      <line x1={x + 3} x2={x + W - 3} y1={cy - 7} y2={cy - 7} stroke={EDGE} strokeWidth="1.2" /></g>;
-  })}</g>;
+  const n = +type.slice(1), gap = KEY_GAP[n], xs = Array.from({ length: n }, (_, i) => cx + (i - (n - 1) / 2) * gap);
+  return <g>
+    {xs.map((x, i) => <rect key={`s${i}`} x={x - 7.75} y={cy - 14.25} width="15.5" height="28.5" rx="7.75" fill="rgba(58,36,48,.45)" />)}
+    {xs.map((x, i) => <Lever key={`l${i}`} id={levers[i]} cx={x} cy={cy} size={TOPPER[n]} fill={fill} />)}
+  </g>;
+}
+
+// A topper on its own, for option tiles.
+export function LeverIcon({ id, fill, className }) {
+  return <svg className={className} viewBox="-20 -20 40 40" aria-hidden="true">
+    {id === 'none'
+      ? <><rect x="-7.75" y="-14.25" width="15.5" height="28.5" rx="7.75" fill="rgba(58,36,48,.35)" /><Lever cx={0} cy={0} fill={fill} /></>
+      : <Lever id={id} cx={0} cy={0} size={34} fill={fill} />}
+  </svg>;
 }
 
 export default function ProductPreview({ config, className, title }) {
@@ -128,16 +109,16 @@ export default function ProductPreview({ config, className, title }) {
     const n = config.sections, v = config.orientation === 'v';
     const l = n * CELL + 2 * M, s = CELL + 2 * M;
     const W = v ? s : l, H = v ? l : s;
-    const d = plate(config.shape, l, s, n);
-    const tf = v ? `translate(${s} 0) rotate(90)` : undefined;
+    const d = plate(config.shape, l, s);
+    const tf = v ? `translate(${s} 0) rotate(90)` : undefined, pad = Math.max(P, PAD[config.shape] || 0);
     return (
-      <svg className={className} viewBox={`${-P} ${-P} ${W + 2 * P} ${H + 2 * P}`} role="img" aria-label={title}>
+      <svg className={className} viewBox={`${-pad} ${-pad} ${W + 2 * pad} ${H + 2 * pad}`} role="img" aria-label={title}>
         <defs><clipPath id={`c${uid}`}><path d={d} transform={tf} /></clipPath></defs>
         <path d={d} transform={tf} fill={base} stroke={EDGE} strokeWidth="1" />
         <g clipPath={`url(#c${uid})`}><PatternFill id={`p${uid}`} kind={config.pattern} w={W} h={H} color={pat} /></g>
         {config.slots.slice(0, n).map((t, i) => {
           const cx = v ? M + CELL / 2 : M + CELL * (i + .5), cy = v ? M + CELL * (i + .5) : M + CELL / 2;
-          return <Insert key={i} type={t} cx={cx} cy={cy} fill={acc} />;
+          return <Insert key={i} type={t} cx={cx} cy={cy} fill={acc} levers={config.levers?.[i]} />;
         })}
       </svg>
     );

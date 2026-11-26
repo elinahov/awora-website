@@ -11,14 +11,10 @@ import ProductPreview from '../components/ProductPreview.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import Living, { HOME_FLIGHTS } from '../components/Living.jsx';
 import { AWMark } from '../components/Logo.jsx';
-import { ArcBadge, ArrowDot, Count, HalfMoons, Ribbons, Squiggle, Sticker, Underline } from '../components/Decor.jsx';
+import { ArcBadge, ArrowDot, Count, HalfMoons, Ribbons, Sticker } from '../components/Decor.jsx';
 
-const HERO_SLUGS = ['cookie-duo', 'bean-tray', 'dotty-socket', 'wavy-frame', 'cracker-trio', 'puddle-mirror'];
-// shape colors behind the hero products (no ivory: it would vanish into the page)
-const FIELDS = ['petal', 'periwinkle', 'butter', 'mint', 'lilac', 'periwinkle'];
-// never the product's own base color, never ivory
-const shapeColor = (base, i) => [...FIELDS.slice(i % FIELDS.length), ...FIELDS].find(f => f !== base);
-const WALK_PRODUCT = 'cookie-duo';
+const HERO_SLUGS = ['clover-duo', 'bean-tray', 'dotty-socket', 'wavy-frame', 'wavy-trio', 'puddle-mirror'];
+const WALK_PRODUCT = 'clover-duo';
 
 /* ---------- hero tile: one product cycling through three color pairs ---------- */
 function HeroTile({ product, i, comboIds }) {
@@ -33,12 +29,29 @@ function HeroTile({ product, i, comboIds }) {
   return (
     <Link data-orbit to={t.path(`/product/${product.slug}`)} className={`tile t-${i}`} aria-label={`${t('hero.tile')}: ${t.pick(product.name)}`}>
       <div className="tile__in">
-        {/* the product sits in front of a big soft brand shape, not inside a card */}
-        <span className={`tile__shape tile__shape--${i % 2 ? 'coral' : 'petal'} field--${shapeColor(initialConfig(product, combos, comboIds[0]).colors.base, i)}`} aria-hidden="true" />
         {comboIds.map((c, k) => <ProductPreview key={c} className={`tile__img${k === on ? ' on' : ''}`} config={initialConfig(product, combos, c)} />)}
         <span className="tile__label">{t.pick(product.name)} <span aria-hidden="true">↗</span></span>
       </div>
     </Link>
+  );
+}
+
+/* headline: line one ends on a tilted pill, line two's letters bounce one after another */
+function Headline({ l1, l2 }) {
+  const words = l1.split(' '), [, last, punct] = words.pop().match(/^(.*?)([,.։՝]*)$/);
+  let n = 0;
+  const l2words = l2.split(' ');
+  return (
+    <h1 id="hero-title" className="hl" aria-label={`${l1} ${l2}`}>
+      <span aria-hidden="true">
+        <span className="w"><span>{words.join(' ')}</span></span>{' '}
+        <span className="w w--pill"><span>{last}</span></span><span className="w w--punct"><span>{punct}</span></span>
+        <br />
+        <span className="w w--accent"><span>{l2words.map((wd, k) => <span key={k}>
+          <span className="hl__word">{Array.from(wd).map((c, j) => <span className="ch" key={j} style={{ '--i': n++ }}>{c}</span>)}</span>{k < l2words.length - 1 ? ' ' : ''}
+        </span>)}</span></span>
+      </span>
+    </h1>
   );
 }
 
@@ -96,13 +109,12 @@ function Hero() {
     return () => { cancelAnimationFrame(raf); ro.disconnect(); removeEventListener('mousemove', onMove); };
   }, [tiles.length]);
 
-  const comboSets = [['berry-milk', 'night-plum', 'butter-mint'], ['sunset', 'peach-sky', 'lilac-cocoa'], ['butter-mint', 'classic', 'peach-sky'],
-    ['berry-milk', 'garden', 'sunset'], ['sunset', 'classic', 'night-plum'], ['peach-sky', 'berry-milk', 'garden']];
+  const comboSets = [['classic', 'night', 'garden'], ['sunny', 'sea', 'wine'], ['garden', 'classic', 'sea'],
+    ['poppy', 'mist', 'sunny'], ['sunny', 'ink', 'night'], ['sea', 'poppy', 'mist']];
 
   return (
     <section className={`hero${loaded ? ' loaded' : ''}`} id="hero" ref={heroRef} aria-labelledby="hero-title">
       <Ribbons set="hero" className="hero__ribbons" par="0.15" />
-      <Squiggle className="hero__squig" color="petal" />
       <HalfMoons className="hero__moons" color="mint" />
       <div className="hero__tiles">
         {tiles.map((p, i) => <HeroTile key={p.slug} product={p} i={i} comboIds={comboSets[i].filter(c => combos.some(x => x.id === c))} />)}
@@ -110,15 +122,15 @@ function Hero() {
       <div data-orbit className="seal" aria-hidden="true">
         <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="58" className="seal__disc" />
           <defs><path id="sealRing" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" /></defs>
-          <text><textPath href="#sealRing">{t('seal.text')}</textPath></text></svg>
+          <text><textPath href="#sealRing" textLength="270" lengthAdjust="spacing">{t('seal.text')}</textPath></text></svg>
         <AWMark className="seal__aw" />
       </div>
       <div className="hero__copy" ref={copyRef}>
         <span className="eyebrow hero__eyebrow fade-in">{t('hero.eyebrow')}</span>
-        <h1 id="hero-title"><span className="w"><span>{t('hero.l1')}</span></span> <span className="w w--accent"><span>{t('hero.l2')}</span><Underline /></span></h1>
+        <Headline l1={t('hero.l1')} l2={t('hero.l2')} />
         <p className="hero__sub fade-in">{t('hero.sub')}</p>
         <div className="hero__ctas fade-in">
-          <Link className="btn btn--ink magnet" to={t.path('/product/cookie-duo')}>{t('hero.cta1')} <span aria-hidden="true">→</span></Link>
+          <Link className="btn btn--ink magnet" to={t.path('/product/clover-duo')}>{t('hero.cta1')} <span aria-hidden="true">→</span></Link>
           <Link className="btn btn--line magnet" to={t.path('/catalog')}>{t('hero.cta2')}</Link>
         </div>
         <ul className="hero__facts fade-in">
@@ -157,8 +169,8 @@ function MiniStudio() {
   const t = useT();
   const { products, combos, colors } = useCatalog();
   const product = products.find(p => p.slug === WALK_PRODUCT);
-  const [combo, setCombo] = useState('berry-milk');
-  const [shape, setShape] = useState('cookie');
+  const [combo, setCombo] = useState('classic');
+  const [shape, setShape] = useState('clover');
   if (!product) return null;
   const cfg = { ...initialConfig(product, combos, combo), shape };
   const hex = id => colors.find(c => c.id === id)?.hex;
