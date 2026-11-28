@@ -169,7 +169,7 @@ export default {
   "guide.del.d": "Delivery options and prices will be listed here when ordering opens.",
 
   "bar.1": "Ordering is open. No payment at checkout",
-  "bar.2": "12 colors · 6 shapes · 8 patterns",
+  "bar.2": "12 colors · 6 shapes · 13 patterns",
   "bar.3": "Every cover is made to your measurements",
 
   "stick.drag": "drag me",

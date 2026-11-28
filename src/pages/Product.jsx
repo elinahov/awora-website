@@ -85,7 +85,7 @@ export default function Product() {
         <div className="product__grid">
           <div className="product__stage">
             <div className="stage stage--neutral">
-              <ProductPreview config={cfg} className="stage__img" title={t.pick(product.name)} />
+              <ProductPreview config={cfg} className="stage__img" title={t.pick(product.name)} realistic />
             </div>
             <div className="combos">
               <span className="field__label">{t('p.combos')}</span>

@@ -57,7 +57,12 @@ export const PATTERNS = [
   { id: 'stripes', name: { en: 'Stripes', hy: 'Գծեր' }, price: 0 },
   { id: 'dots', name: { en: 'Dots', hy: 'Կետեր' }, price: 0 },
   { id: 'checks', name: { en: 'Checks', hy: 'Վանդակներ' }, price: 0 },
-  { id: 'sparkles', name: { en: 'Sparkles', hy: 'Փայլեր' }, price: 0 }
+  { id: 'sparkles', name: { en: 'Sparkles', hy: 'Փայլեր' }, price: 0 },
+  { id: 'blobs', name: { en: 'Blobs', hy: 'Բծեր' }, price: 0 },
+  { id: 'halves', name: { en: 'Half circles', hy: 'Կիսաշրջաններ' }, price: 0 },
+  { id: 'cherries', name: { en: 'Cherries', hy: 'Բալեր' }, price: 0 },
+  { id: 'tiles', name: { en: 'Retro tiles', hy: 'Ռետրո սալիկներ' }, price: 0 },
+  { id: 'confetti', name: { en: 'Confetti', hy: 'Կոնֆետի' }, price: 0 }
 ];
 
 // Decor objects: each kind has its own shape and size options.
