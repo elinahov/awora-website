@@ -204,19 +204,30 @@ function Rocker({ cx, cy, size = 30, fill, shadow }) {
   </g>;
 }
 
+/* Socket: like the plain key, it sits under the cover and shows through a round opening;
+   the cover's wall shades the top-left inside edge. */
+function Socket({ cx, cy, fill, shadow }) {
+  const cid = 's' + useId().replace(/[^a-zA-Z0-9]/g, '');
+  const R = 30, wall = shadow ? [2.6, 3.6] : [1.6, 2.2];
+  const outside = (dx, dy) => `M${cx - 60} ${cy - 60}h120v120h-120Z M${cx + dx} ${cy + dy - R}a${R} ${R} 0 1 0 .01 0Z`;
+  return <g>
+    <defs><clipPath id={cid}><circle cx={cx} cy={cy} r={R} /></clipPath></defs>
+    <circle cx={cx} cy={cy} r={R} fill={fill} />
+    <g clipPath={`url(#${cid})`}>
+      <rect x={cx - 5} y={cy - 29} width="10" height="5" rx="1.5" fill="rgba(58,36,48,.25)" />
+      <rect x={cx - 5} y={cy + 24} width="10" height="5" rx="1.5" fill="rgba(58,36,48,.25)" />
+      <circle cx={cx - 11} cy={cy} r="4.2" fill="#3A2430" opacity=".75" />
+      <circle cx={cx + 11} cy={cy} r="4.2" fill="#3A2430" opacity=".75" />
+      <path d={outside(...wall)} fillRule="evenodd" fill={sideOf(fill)} />
+      {shadow && <path d={outside(wall[0] + 2, wall[1] + 3)} fillRule="evenodd" fill="#2A1A22" opacity=".3" filter={`url(#${shadow})`} />}
+    </g>
+    <circle cx={cx} cy={cy} r={R} fill="none" stroke={EDGE} strokeWidth="1.2" />
+  </g>;
+}
+
 function Insert({ type, cx, cy, fill, levers = [], shadow }) {
   if (type === 'blank') return null;
-  if (type === 'socket') return <g>
-    {shadow && <>
-      <circle cx={cx + 3} cy={cy + 4.5} r="30" fill="#2A1A22" opacity=".3" filter={`url(#${shadow})`} />
-      <circle cx={cx + 1.2} cy={cy + 1.8} r="30" fill={sideOf(fill)} />
-    </>}
-    <circle cx={cx} cy={cy} r="30" fill={fill} stroke={EDGE} strokeWidth="1.2" />
-    <rect x={cx - 5} y={cy - 29} width="10" height="5" rx="1.5" fill="rgba(58,36,48,.25)" />
-    <rect x={cx - 5} y={cy + 24} width="10" height="5" rx="1.5" fill="rgba(58,36,48,.25)" />
-    <circle cx={cx - 11} cy={cy} r="4.2" fill="#3A2430" opacity=".75" />
-    <circle cx={cx + 11} cy={cy} r="4.2" fill="#3A2430" opacity=".75" />
-  </g>;
+  if (type === 'socket') return <Socket cx={cx} cy={cy} fill={fill} shadow={shadow} />;
   const n = +type.slice(1), gap = KEY_GAP[n], xs = Array.from({ length: n }, (_, i) => cx + (i - (n - 1) / 2) * gap);
   return <g>
     {xs.map((x, i) => levers[i] && levers[i] !== 'none' && <rect key={`s${i}`} x={x - 7.75} y={cy - 14.25} width="15.5" height="28.5" rx="7.75" fill="rgba(58,36,48,.45)" />)}

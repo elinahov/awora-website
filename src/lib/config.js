@@ -1,4 +1,4 @@
-import { COVER_SHAPES, PATTERNS, DECOR_SIZES, COVER_PRICING, LEVER_SHAPES } from '../data/seed.js';
+import { COVER_SHAPES, PATTERNS, DECOR_SHAPES, DECOR_SIZES, COVER_PRICING, LEVER_SHAPES, SECTION_TYPES } from '../data/seed.js';
 
 const KEY_SLOTS = ['k1', 'k2', 'k3'];
 // Number of switch keys (levers) in a section type: k1 → 1, k2 → 2, k3 → 3, socket/blank → 0.
@@ -22,6 +22,44 @@ export function initialConfig(product, combos, comboId) {
     return { kind: 'cover', sections: d.sections, slots, levers: normLevers(d.levers), shape: d.shape, orientation: d.orientation || 'h', pattern: d.pattern, colors };
   }
   return { kind: product.kind, shape: d.shape, size: d.size, pattern: d.pattern, colors };
+}
+
+/* The configuration as URL query params, so a design survives a reload and can be shared:
+   ?shape=cloud&pattern=dots&base=..&pcolor=..&accent=..&sections=2&slots=k1.socket&orient=h&keys=heart.-_circle&size=m
+   `keys`: one group per active section ('_' between), one entry per key ('.' between), '-' = no topper. */
+export function configToQuery(cfg) {
+  const q = { shape: cfg.shape, pattern: cfg.pattern, base: cfg.colors.base, pcolor: cfg.colors.pattern, accent: cfg.colors.accent };
+  if (cfg.kind === 'cover') {
+    const slots = cfg.slots.slice(0, cfg.sections);
+    Object.assign(q, { sections: String(cfg.sections), slots: slots.join('.'), orient: cfg.orientation });
+    const keys = slots.map((slot, i) => normLevers(cfg.levers)[i].slice(0, keysIn(slot)).map(v => v === 'none' ? '-' : v).join('.')).join('_');
+    if (keys.replace(/[-._]/g, '')) q.keys = keys;
+  } else if (cfg.size) q.size = cfg.size;
+  return q;
+}
+
+// Apply query params on top of a starting config. Anything unknown or invalid is ignored.
+export function configFromQuery(params, base, colorIds) {
+  const get = k => params.get(k);
+  const one = (v, list) => list.some(o => (o.id ?? o) === v) ? v : undefined;
+  const cfg = { ...base, colors: { ...base.colors } };
+  const pattern = one(get('pattern'), PATTERNS); if (pattern) cfg.pattern = pattern;
+  [['base', 'base'], ['pcolor', 'pattern'], ['accent', 'accent']].forEach(([k, c]) => { const v = one(get(k), colorIds); if (v) cfg.colors[c] = v; });
+  if (cfg.kind === 'cover') {
+    const shape = one(get('shape'), COVER_SHAPES); if (shape) cfg.shape = shape;
+    const n = Number(get('sections')); if (n >= 1 && n <= 4) cfg.sections = n;
+    const slots = (get('slots') || '').split(/[.,]/).filter(Boolean);
+    if (slots.length && slots.every(sl => one(sl, SECTION_TYPES))) cfg.slots = cfg.slots.map((sl, i) => slots[i] || sl);
+    if (['h', 'v'].includes(get('orient'))) cfg.orientation = get('orient');
+    if (params.has('keys') || params.has('slots')) {
+      const groups = (get('keys') || '').split('_');
+      cfg.levers = normLevers(Array.from({ length: 4 }, (_, i) => i < cfg.sections ? (groups[i] || '').split('.').map(v => v === '-' ? 'none' : v) : cfg.levers?.[i]));
+    }
+  } else {
+    const shape = one(get('shape'), DECOR_SHAPES[cfg.kind] || []); if (shape) cfg.shape = shape;
+    const size = one(get('size'), DECOR_SIZES[cfg.kind] || []); if (size) cfg.size = size;
+  }
+  return cfg;
 }
 
 // Price table in AMD. Defaults come from seed.js; the admin can override it (Supabase `settings.pricing`).

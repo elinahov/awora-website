@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useT } from '../i18n.jsx';
 import { useCatalog } from '../lib/catalog.jsx';
 import { useCart } from '../cart.jsx';
-import { configCode, formatAMD, initialConfig, keysIn, normLevers, priceOf } from '../lib/config.js';
+import { configCode, configFromQuery, configToQuery, formatAMD, initialConfig, keysIn, normLevers, priceOf } from '../lib/config.js';
 import { COVER_SHAPES, DECOR_SHAPES, DECOR_SIZES, LEVER_SHAPES, PATTERNS, SECTION_TYPES } from '../data/seed.js';
 import ProductPreview, { LeverIcon } from '../components/ProductPreview.jsx';
 import { Opts, Swatches } from '../components/Options.jsx';
@@ -27,23 +27,28 @@ const Head = ({ icon, children }) => <span className="field__label field__label-
 export default function Product() {
   const t = useT();
   const { slug } = useParams();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const { products, combos, colors, pricing } = useCatalog();
   const cart = useCart();
   const product = products.find(p => p.slug === slug);
-  const comboParam = params.get('combo');
-  const shapeParam = params.get('shape');
+  // The design lives in the URL (see configToQuery), so a reload or a shared link opens the same design.
+  // Read the URL only when the product or catalog changes; the config writes back to it below.
   const start = useMemo(() => {
     if (!product) return null;
-    const c = initialConfig(product, combos, comboParam);
-    return c.kind === 'cover' && COVER_SHAPES.some(s => s.id === shapeParam) ? { ...c, shape: shapeParam } : c;
-  }, [product, combos, comboParam, shapeParam]);
+    const c = initialConfig(product, combos, params.get('combo'));
+    return configFromQuery(params, c, colors);
+  }, [product, combos, colors]); // eslint-disable-line react-hooks/exhaustive-deps
   const [cfg, setCfg] = useState(start);
   const [tab, setTab] = useState('shape');
   const [qty, setQty] = useState(1);
   const [copied, setCopied] = useState(false);
   const [added, setAdded] = useState(false);
   useEffect(() => { setCfg(start); setTab('shape'); setQty(1); }, [start]);
+  useEffect(() => {
+    if (!cfg) return;
+    const next = new URLSearchParams(configToQuery(cfg)).toString();
+    if (next !== params.toString()) setParams(next, { replace: true, preventScrollReset: true });
+  }, [cfg]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!product || !cfg) return <section className="page-pad wrap"><h1 className="h1">{t('p.notFound')}</h1><Link className="btn btn--ink" to={t.path('/catalog')}>{t('p.back')}</Link></section>;
 
@@ -162,7 +167,7 @@ export default function Product() {
 
               <div className="panel__foot">
                 <div className="buy__price"><b>{formatAMD(price, t.lang)}</b><span>{t('p.perItem')}</span></div>
-                <button className="reset" onClick={() => { track('configurator_reset', { product: product.slug }); setCfg(start); }}><Icon name="reset" />{t('p.reset')}</button>
+                <button className="reset" onClick={() => { track('configurator_reset', { product: product.slug }); setCfg(initialConfig(product, combos)); }}><Icon name="reset" />{t('p.reset')}</button>
               </div>
             </div>
 
