@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase.js';
 import { useCatalog } from '../../lib/catalog.jsx';
-import { COVER_SHAPES, DECOR_SIZES, PATTERNS } from '../../data/seed.js';
+import { COVER_SHAPES, DECOR_SIZES, OUTLINE_SHAPES, PATTERNS } from '../../data/seed.js';
 import { mergePricing } from '../../lib/config.js';
 import { Msg } from '../../components/Form.jsx';
 
@@ -29,7 +29,7 @@ export default function Prices() {
 
   return (
     <div className="prices">
-      <p className="small">A cover costs: first section + each extra section + shape + pattern + each lever topper. An object costs: size + pattern. Orders already placed keep their prices.</p>
+      <p className="small">A cover costs: first section + each extra section + shape + pattern + each lever topper. An outline frame is priced the same way from its own table (lever toppers share the cover price). An object costs: size + pattern. Orders already placed keep their prices.</p>
       <div className="prices__grid">
         <div className="card-box">
           <h3>Covers</h3>
@@ -40,8 +40,15 @@ export default function Prices() {
           {COVER_SHAPES.map(s => <Num key={s.id} label={s.name.en} value={p.shapes[s.id]} onChange={v => upd(x => { x.shapes[s.id] = v; return x; })} />)}
         </div>
         <div className="card-box">
+          <h3>Outline frames</h3>
+          <Num label="First section" value={p.outline.first} onChange={v => upd(x => { x.outline.first = v; return x; })} />
+          <Num label="Each extra section" value={p.outline.extra} onChange={v => upd(x => { x.outline.extra = v; return x; })} />
+          <h4>Shape surcharge</h4>
+          {OUTLINE_SHAPES.map(s => <Num key={s.id} label={s.name.en} value={p.outline.shapes[s.id]} onChange={v => upd(x => { x.outline.shapes[s.id] = v; return x; })} />)}
+        </div>
+        <div className="card-box">
           <h3>Pattern surcharge</h3>
-          <p className="small">Applies to covers and objects.</p>
+          <p className="small">Applies to covers, outline frames and objects.</p>
           {PATTERNS.map(s => <Num key={s.id} label={s.name.en} value={p.patterns[s.id]} onChange={v => upd(x => { x.patterns[s.id] = v; return x; })} />)}
         </div>
         <div className="card-box">

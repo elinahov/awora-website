@@ -302,6 +302,8 @@ export default function ProductPreview({ config, className, title, realistic = f
     );
   }
 
+  if (config.kind === 'outline') return <Outline config={config} className={className} title={title} realistic={realistic} uid={uid} base={base} pat={pat} acc={acc} />;
+
   const outer = (DECOR[config.shape] || DECOR.bean)();
   const W = 200, H = 170;
   const side = `color-mix(in srgb, ${base} 78%, #3A2430)`;
@@ -334,6 +336,77 @@ export default function ProductPreview({ config, className, title, realistic = f
           <path d="M40 120L120 20H140L60 130Z" /><path d="M80 140L150 50H158L88 146Z" />
         </g>
       </>}
+    </svg>
+  );
+}
+
+/* Outline frame: only the sides of a cover. The cover outline grows by a border B all round,
+   the middle is open, and the existing wall plate (neutral, with its own switch or socket)
+   shows through. The outer edge is layered like a stacked print: base, a thin accent line,
+   then the base face on top, drawn as wide strokes under the face. */
+const WALL = '#F3F0EA';
+const rrPath = (x, y, w, h, r) => `M${f(x + r)} ${f(y)}h${f(w - 2 * r)}a${r} ${r} 0 0 1 ${r} ${r}v${f(h - 2 * r)}a${r} ${r} 0 0 1 ${-r} ${r}h${f(2 * r - w)}a${r} ${r} 0 0 1 ${-r} ${-r}v${f(2 * r - h)}a${r} ${r} 0 0 1 ${r} ${-r}Z`;
+
+function Outline({ config, className, title, realistic, uid, base, pat, acc }) {
+  const n = config.sections, v = config.orientation === 'v';
+  const l = n * CELL + 2 * M, s = CELL + 2 * M;
+  const B = s * .2, line = s * .032, under = s * .03, lip = 4;
+  const outer = plate(config.shape, l + 2 * B, s + 2 * B);
+  const hole = rrPath(B + lip, B + lip, l - 2 * lip, s - 2 * lip, 7);
+  const W = v ? s : l, H = v ? l : s;
+  const tf = v ? `translate(${s} 0) rotate(90)` : undefined;
+  const pad = (PAD[config.shape] || 0) * (s + 2 * B) / s + B + line + under + 6;
+  const DEPTH = realistic ? 6 : 0, EXTRA = realistic ? 16 : 0;
+  const edge = { strokeLinejoin: 'round' };
+  const inserts = sh => config.slots.slice(0, n).map((t, i) => {
+    const cx = v ? M + CELL / 2 : M + CELL * (i + .5), cy = v ? M + CELL * (i + .5) : M + CELL / 2;
+    return <Insert key={i} type={t} cx={cx} cy={cy} fill={WALL} levers={config.levers?.[i]} shadow={sh} />;
+  });
+  // the layered rim, in the grown frame's coordinates
+  const rim = <g transform={`translate(${-B} ${-B})`}>
+    <path d={outer} fill="none" stroke={base} strokeWidth={2 * (line + under)} {...edge} />
+    <path d={outer} fill="none" stroke={acc} strokeWidth={2 * line} {...edge} />
+    <path d={outer + hole} fillRule="evenodd" fill={base} />
+    <g clipPath={`url(#o${uid})`}>
+      <PatternFill id={`p${uid}`} kind={config.pattern} w={l + 2 * B} h={s + 2 * B} color={pat} base={base} />
+      {realistic && <>
+        <rect x={-BLEED} y={-BLEED} width={l + 2 * B + 2 * BLEED} height={s + 2 * B + 2 * BLEED} filter={`url(#g${uid})`} opacity=".5" />
+        <rect x={-BLEED} y={-BLEED} width={l + 2 * B + 2 * BLEED} height={s + 2 * B + 2 * BLEED} fill={`url(#l${uid})`} />
+      </>}
+    </g>
+    <path d={hole} fill="none" stroke={EDGE} strokeWidth="1" />
+  </g>;
+  // the rim's silhouette (outer edge incl. the under-layers, with the hole), for depth and shadow
+  const silhouette = (fill, extra = {}) => <g transform={`translate(${-B} ${-B})`} {...extra}>
+    <path d={outer} fill="none" stroke={fill} strokeWidth={2 * (line + under)} {...edge} />
+    <path d={outer + hole} fillRule="evenodd" fill={fill} />
+  </g>;
+  return (
+    <svg className={className} viewBox={`${-pad} ${-pad} ${W + 2 * pad + EXTRA} ${H + 2 * pad + EXTRA}`} role="img" aria-label={title}>
+      <defs>
+        <clipPath id={`o${uid}`}><path d={outer + hole} clipRule="evenodd" /></clipPath>
+        {realistic && <>
+          <filter id={`b${uid}`} x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.5" /></filter>
+          <filter id={`k${uid}`} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6" /></filter>
+          <filter id={`g${uid}`} x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" />
+            <feColorMatrix type="matrix" values="0 0 0 0 .2  0 0 0 0 .14  0 0 0 0 .16  0 0 0 -1.4 .9" />
+          </filter>
+          <linearGradient id={`l${uid}`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#fff" stopOpacity=".16" />
+            <stop offset=".55" stopColor="#fff" stopOpacity="0" />
+            <stop offset="1" stopColor="#2A1A22" stopOpacity=".08" />
+          </linearGradient>
+        </>}
+      </defs>
+      {/* the wall plate that stays on the wall */}
+      <path d={rrPath(0, 0, W, H, 8)} fill={WALL} stroke={EDGE} strokeWidth="1" />
+      {inserts(realistic ? `k${uid}` : undefined)}
+      <g transform={tf}>
+        {realistic && <g transform={`translate(${DEPTH + 9} ${DEPTH + 12})`} filter={`url(#b${uid})`} opacity=".28">{silhouette('#2A1A22')}</g>}
+        {Array.from({ length: DEPTH }, (_, k) => <g key={k} transform={`translate(${DEPTH - k} ${DEPTH - k})`}>{silhouette(sideOf(base))}</g>)}
+        {rim}
+      </g>
     </svg>
   );
 }

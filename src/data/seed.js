@@ -100,6 +100,13 @@ export const DECOR_SIZES = {
 
 export const COVER_PRICING = { firstSection: 4900, extraSection: 2900, lever: 500 };
 
+/* Outline frames: only the sides of a cover, open in the middle, so the switch plate already on
+   the wall shows through. The edge is layered (base / accent line / base), like a stacked print.
+   A separate product line: its options start as a copy of the cover's, so the two can drift apart. */
+export const OUTLINE_SHAPES = COVER_SHAPES.map(s => ({ ...s, name: { ...s.name } }));
+export const OUTLINE_SECTION_TYPES = SECTION_TYPES.map(s => ({ ...s, name: { ...s.name } }));
+export const OUTLINE_PRICING = { firstSection: 3900, extraSection: 2400 };
+
 // Toppers for toggle-switch levers, chosen per key. 'none' = the plain lever. Priced per topper (COVER_PRICING.lever).
 export const LEVER_SHAPES = [
   { id: 'none', name: { en: 'None', hy: 'Առանց' } },
@@ -116,10 +123,12 @@ export const COLLECTIONS = [
   { id: 'waves', name: { en: 'Waves', hy: 'Ալիքներ' }, color: 'periwinkle' },
   { id: 'soft', name: { en: 'Soft shapes', hy: 'Փափուկ ձևեր' }, color: 'petal' },
   { id: 'graphic', name: { en: 'Checks & dots', hy: 'Վանդակներ և կետեր' }, color: 'butter' },
-  { id: 'objects', name: { en: 'Objects', hy: 'Առարկաներ' }, color: 'persimmon' }
+  { id: 'objects', name: { en: 'Objects', hy: 'Առարկաներ' }, color: 'persimmon' },
+  { id: 'outlines', name: { en: 'Outlines', hy: 'Եզրագծեր' }, color: 'lilac' }
 ];
 
 const cover = (slug, collection, name, blurb, d) => ({ slug, category: 'cover', kind: 'cover', collection, name, blurb, defaults: d });
+const outline = (slug, name, blurb, d) => ({ slug, category: 'outline', kind: 'outline', collection: 'outlines', name, blurb, defaults: d });
 const decor = (slug, kind, name, blurb, d) => ({ slug, category: 'decor', kind, collection: 'objects', name, blurb, defaults: d });
 
 export const PRODUCTS = [
@@ -155,6 +164,18 @@ export const PRODUCTS = [
     { en: 'Sunny double socket', hy: 'Արևոտ կրկնակի վարդակ' },
     { en: 'Two sockets wrapped in warm, rolling waves.', hy: 'Երկու վարդակ՝ տաք, գլորվող ալիքների մեջ։' },
     { sections: 2, slots: ['socket', 'socket'], shape: 'circle', orientation: 'h', pattern: 'waves', combo: 'sunny' }),
+  outline('wavy-outline',
+    { en: 'Wavy outline frame', hy: 'Ալիքավոր եզրաշրջանակ' },
+    { en: 'Just the edge: a wavy, two-tone frame around the switch you already have.', hy: 'Միայն եզրը՝ ալիքավոր, երկգույն շրջանակ քո առկա անջատիչի շուրջ։' },
+    { sections: 1, slots: ['k1'], shape: 'wavy', orientation: 'h', pattern: 'plain', combo: 'sunny' }),
+  outline('cloud-outline',
+    { en: 'Cloud outline frame', hy: '«Ամպ» եզրաշրջանակ' },
+    { en: 'A soft cloud edge with a line of color peeking out underneath.', hy: 'Փափուկ ամպաձև եզր՝ տակից երևացող գունավոր գծով։' },
+    { sections: 1, slots: ['socket'], shape: 'cloud', orientation: 'h', pattern: 'plain', combo: 'poppy' }),
+  outline('wavy-outline-duo',
+    { en: 'Wavy double outline', hy: 'Ալիքավոր կրկնակի եզրաշրջանակ' },
+    { en: 'One wavy edge around a switch and a socket side by side.', hy: 'Մեկ ալիքավոր եզր կողք կողքի անջատիչի և վարդակի շուրջ։' },
+    { sections: 2, slots: ['k1', 'socket'], shape: 'wavy', orientation: 'h', pattern: 'plain', combo: 'night' }),
   decor('bean-tray', 'tray',
     { en: 'Bean tray', hy: '«Լոբի» սկուտեղ' },
     { en: 'A soft tray that catches keys, rings and the small things by the door.', hy: 'Փափուկ սկուտեղ բանալիների, մատանիների և դռան մոտի մանրուքների համար։' },

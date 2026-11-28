@@ -4,6 +4,7 @@ import { useT } from '../i18n.jsx';
 import { useCatalog } from '../lib/catalog.jsx';
 import { useReveal } from '../lib/motion.js';
 import ProductCard from '../components/ProductCard.jsx';
+import { isPlate } from '../lib/config.js';
 import Living from '../components/Living.jsx';
 
 const coverType = p => {
@@ -22,6 +23,7 @@ const Ico = {
   all: <svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="3" /><circle cx="12" cy="12" r="3" /><circle cx="18" cy="12" r="3" /></svg>,
   cover: <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5" /><rect x="10.3" y="8" width="3.4" height="8" rx="1.7" fill="var(--chip-bg)" /></svg>,
   decor: <svg viewBox="0 0 24 24"><path d="M4 13C3 7 9 3 13 5s7 1 7 6-4 9-9 8-6-3-7-6Z" /></svg>,
+  outline: <svg viewBox="0 0 24 24"><path fillRule="evenodd" d="M8 2.5h8A5.5 5.5 0 0 1 21.5 8v8a5.5 5.5 0 0 1-5.5 5.5H8A5.5 5.5 0 0 1 2.5 16V8A5.5 5.5 0 0 1 8 2.5ZM8.5 7.5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z" /></svg>,
   switch: <svg viewBox="0 0 24 24"><rect x="8" y="3" width="8" height="18" rx="4" /><rect x="10" y="6" width="4" height="6" rx="2" fill="var(--chip-bg)" /></svg>,
   socket: <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><circle cx="8.5" cy="12" r="1.8" fill="var(--chip-bg)" /><circle cx="15.5" cy="12" r="1.8" fill="var(--chip-bg)" /></svg>,
   mixed: <svg viewBox="0 0 24 24"><rect x="2" y="6" width="7" height="12" rx="3.5" /><circle cx="16.5" cy="12" r="5.5" /></svg>
@@ -58,8 +60,8 @@ export default function Catalog() {
   const list = useMemo(() => products.filter(p =>
     (f.category === 'all' || p.category === f.category) &&
     (f.collection === 'all' || p.collection === f.collection) &&
-    (f.sections === 'any' || (p.kind === 'cover' && String(p.defaults.sections) === f.sections)) &&
-    (f.type === 'any' || (p.kind === 'cover' && coverType(p) === f.type))
+    (f.sections === 'any' || (isPlate(p.kind) && String(p.defaults.sections) === f.sections)) &&
+    (f.type === 'any' || (isPlate(p.kind) && coverType(p) === f.type))
   ), [products, f.category, f.collection, f.sections, f.type]);
 
   useReveal([t.lang, list.length, f.category, f.collection, f.sections, f.type]);
@@ -74,7 +76,7 @@ export default function Catalog() {
         </header>
         <div className={`filters${showCoverFilters ? '' : ' filters--decor'}`}>
           <Chips tone="petal" className="filter--category" label={t('cat.category')} value={f.category} onChange={v => set('category', v)}
-            options={[{ id: 'all', label: t('cat.all'), icon: Ico.all }, { id: 'cover', label: t('cat.covers'), icon: Ico.cover }, { id: 'decor', label: t('cat.decor'), icon: Ico.decor }]} />
+            options={[{ id: 'all', label: t('cat.all'), icon: Ico.all }, { id: 'cover', label: t('cat.covers'), icon: Ico.cover }, { id: 'outline', label: t('cat.outlines'), icon: Ico.outline }, { id: 'decor', label: t('cat.decor'), icon: Ico.decor }]} />
           {showCoverFilters && <Chips tone="butter" className="filter--sections" label={t('cat.sections')} value={f.sections} onChange={v => set('sections', v)}
             options={[{ id: 'any', label: t('cat.any') }, ...['1', '2', '3', '4'].map(n => ({ id: n, label: n, icon: <Dots n={+n} /> }))]} />}
           {showCoverFilters && <Chips tone="mint" className="filter--type" label={t('cat.type')} value={f.type} onChange={v => set('type', v)}

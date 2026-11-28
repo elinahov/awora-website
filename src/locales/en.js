@@ -83,6 +83,7 @@ export default {
   "cat.all": "All",
   "cat.covers": "Switch covers",
   "cat.decor": "Objects",
+  "cat.outlines": "Outline frames",
   "cat.collection": "Collection",
   "cat.sections": "Sections",
   "cat.any": "Any",
@@ -124,6 +125,7 @@ export default {
   "p.accent.tray": "Inside",
   "p.accent.frame": "Photo mount",
   "p.accent.mirror": "Mirror edge",
+  "p.accent.outline": "Edge line",
   "p.perItem": "per item",
   "p.add": "Add to cart",
   "p.added": "Added",
@@ -137,6 +139,7 @@ export default {
   "p.materialText": "3D-printed plastic with a fine layered texture. Wipe with a soft, slightly damp cloth. Keep away from direct heat.",
   "p.install": "Installation",
   "p.installText": "Slides over your existing frame. The switch mechanism stays where it is.",
+  "p.outlineInstallText": "Sits around the switch plate you already have. Nothing to unscrew: the plate and the switch stay as they are.",
   "p.decorInstall": "Delivery",
   "p.decorInstallText": "Printed to order and packed with a short care card.",
   "p.notFound": "This design could not be found.",
@@ -310,5 +313,6 @@ export default {
   "seo.kind.tray": "tray",
   "seo.kind.frame": "photo frame",
   "seo.kind.mirror": "mirror",
+  "seo.kind.outline": "switch outline frame",
   "seo.crumb.home": "Home"
 };

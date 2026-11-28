@@ -3,8 +3,8 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useT } from '../i18n.jsx';
 import { useCatalog } from '../lib/catalog.jsx';
 import { useCart } from '../cart.jsx';
-import { configCode, configFromQuery, configToQuery, formatAMD, initialConfig, keysIn, normLevers, priceOf } from '../lib/config.js';
-import { COVER_SHAPES, DECOR_SHAPES, DECOR_SIZES, LEVER_SHAPES, PATTERNS, SECTION_TYPES } from '../data/seed.js';
+import { configCode, configFromQuery, configToQuery, formatAMD, initialConfig, isPlate, keysIn, normLevers, priceOf, sectionTypesFor, shapesFor } from '../lib/config.js';
+import { DECOR_SIZES, LEVER_SHAPES, PATTERNS } from '../data/seed.js';
 import ProductPreview, { LeverIcon } from '../components/ProductPreview.jsx';
 import { Opts, Swatches } from '../components/Options.jsx';
 import Palette from '../components/Palette.jsx';
@@ -52,7 +52,8 @@ export default function Product() {
 
   if (!product || !cfg) return <section className="page-pad wrap"><h1 className="h1">{t('p.notFound')}</h1><Link className="btn btn--ink" to={t.path('/catalog')}>{t('p.back')}</Link></section>;
 
-  const cover = cfg.kind === 'cover';
+  // Covers and outline frames share this configurator for now; their option lists are separate (shapesFor / sectionTypesFor).
+  const cover = isPlate(cfg.kind);
   const set = patch => setCfg(c => ({ ...c, ...patch }));
   // Every configurator click is sent to Google Analytics as `configurator_option` (option + value).
   const log = (option, value) => track('configurator_option', { option, value: String(value), product: product.slug, kind: cfg.kind });
@@ -60,7 +61,7 @@ export default function Product() {
   const price = priceOf(cfg, pricing), code = configCode(cfg);
   const activeCombo = combos.find(c => c.base === cfg.colors.base && c.pattern === cfg.colors.pattern && c.accent === cfg.colors.accent);
   const hex = id => colors.find(c => c.id === id)?.hex;
-  const mini = shape => <ProductPreview className="opt__icon" config={{ kind: 'cover', sections: 1, slots: ['blank'], shape, orientation: 'h', pattern: 'plain', colors: { ...cfg.colors, base: light(hex(cfg.colors.base)) ? '#2D3A6A' : cfg.colors.base } }} />;
+  const mini = shape => <ProductPreview className="opt__icon" config={{ kind: cfg.kind, sections: 1, slots: ['blank'], shape, orientation: 'h', pattern: 'plain', colors: { ...cfg.colors, base: light(hex(cfg.colors.base)) ? '#2D3A6A' : cfg.colors.base } }} />;
   const decorMini = shape => <ProductPreview className="opt__icon" config={{ kind: cfg.kind, shape, pattern: 'plain', colors: cfg.colors }} />;
 
   const add = () => {
@@ -121,11 +122,11 @@ export default function Product() {
                     options={[1, 2, 3, 4].map(n => ({ id: n, label: n === 1 ? t('p.section1') : t('p.sectionN', { n }) }))} /></div>
                 <div className="field"><Head icon="shape">{t('p.shape')}</Head>
                   <Opts className="opts--tiles" label={t('p.shape')} value={cfg.shape} onChange={s => { log('shape', s); set({ shape: s }); }}
-                    options={COVER_SHAPES.map(s => ({ id: s.id, label: t.pick(s.name), icon: mini(s.id) }))} /></div>
+                    options={shapesFor(cfg.kind).map(s => ({ id: s.id, label: t.pick(s.name), icon: mini(s.id) }))} /></div>
                 {Array.from({ length: cfg.sections }, (_, i) => (
                   <div className="field field--card" key={i}><Head icon="sliders">{t('p.sectionLabel', { n: i + 1 })}</Head>
                     <Opts className="opts--seg" label={t('p.sectionLabel', { n: i + 1 })} value={cfg.slots[i]} onChange={v => { log(`section_${i + 1}`, v); set({ slots: cfg.slots.map((s, j) => j === i ? v : s) }); }}
-                      options={SECTION_TYPES.map(s => ({ id: s.id, label: t.pick(s.name) }))} /></div>
+                      options={sectionTypesFor(cfg.kind).map(s => ({ id: s.id, label: t.pick(s.name) }))} /></div>
                 ))}
                 {cfg.sections > 1 && <div className="field"><Head icon="turn">{t('p.orientation')}</Head>
                   <Opts className="opts--seg opts--narrow" label={t('p.orientation')} value={cfg.orientation} onChange={v => { log('orientation', v); set({ orientation: v }); }}
@@ -135,7 +136,7 @@ export default function Product() {
               {tab === 'shape' && !cover && <div className="tabpanel">
                 <div className="field"><Head icon="shape">{t('p.shape')}</Head>
                   <Opts className="opts--tiles" label={t('p.shape')} value={cfg.shape} onChange={s => { log('shape', s); set({ shape: s }); }}
-                    options={(DECOR_SHAPES[cfg.kind] || []).map(s => ({ id: s.id, label: t.pick(s.name), icon: decorMini(s.id) }))} /></div>
+                    options={shapesFor(cfg.kind).map(s => ({ id: s.id, label: t.pick(s.name), icon: decorMini(s.id) }))} /></div>
                 <div className="field"><Head icon="layers">{t('p.size')}</Head>
                   <Opts className="opts--seg" label={t('p.size')} value={cfg.size} onChange={s => { log('size', s); set({ size: s }); }}
                     options={(DECOR_SIZES[cfg.kind] || []).map(s => ({ id: s.id, label: `${s.id.toUpperCase()} · ${s.dims}` }))} /></div>
@@ -185,7 +186,7 @@ export default function Product() {
             <div className="details">
               <details open><summary>{t('p.about')}<span aria-hidden="true" /></summary><p>{t.pick(product.blurb)}</p></details>
               <details><summary>{t('p.material')}<span aria-hidden="true" /></summary><p>{t('p.materialText')}</p></details>
-              <details><summary>{cover ? t('p.install') : t('p.decorInstall')}<span aria-hidden="true" /></summary><p>{cover ? t('p.installText') : t('p.decorInstallText')}</p></details>
+              <details><summary>{cover ? t('p.install') : t('p.decorInstall')}<span aria-hidden="true" /></summary><p>{cfg.kind === 'outline' ? t('p.outlineInstallText') : cover ? t('p.installText') : t('p.decorInstallText')}</p></details>
             </div>
           </div>
         </div>

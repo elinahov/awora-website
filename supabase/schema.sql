@@ -26,8 +26,8 @@ create table if not exists public.collections (
 
 create table if not exists public.products (
   slug text primary key,
-  category text not null check (category in ('cover', 'decor')),
-  kind text not null check (kind in ('cover', 'tray', 'frame', 'mirror')),
+  category text not null check (category in ('cover', 'outline', 'decor')),
+  kind text not null check (kind in ('cover', 'outline', 'tray', 'frame', 'mirror')),
   collection text references public.collections(id),
   name jsonb not null,
   blurb jsonb not null,
@@ -85,7 +85,7 @@ create policy "own profile read" on public.profiles for select using (id = auth.
 create policy "own profile insert" on public.profiles for insert with check (id = auth.uid());
 create policy "own profile update" on public.profiles for update using (id = auth.uid()) with check (id = auth.uid());
 
--- Key/value settings. 'pricing' = { coverFirst, coverExtra, shapes:{id:n}, patterns:{id:n}, sizes:{kind:{id:n}} } in AMD.
+-- Key/value settings. 'pricing' = { coverFirst, coverExtra, lever, shapes:{id:n}, patterns:{id:n}, sizes:{kind:{id:n}}, outline:{first, extra, shapes:{id:n}} } in AMD.
 create table if not exists public.settings (
   key text primary key,
   value jsonb not null,
@@ -135,3 +135,9 @@ create policy "admin write colors" on public.colors for all using (public.is_adm
 create policy "admin write combos" on public.combos for all using (public.is_admin()) with check (public.is_admin());
 create policy "admin write collections" on public.collections for all using (public.is_admin()) with check (public.is_admin());
 create policy "admin write products" on public.products for all using (public.is_admin()) with check (public.is_admin());
+
+-- Migration (safe to re-run): allow outline frames on databases created before they existed.
+alter table public.products drop constraint if exists products_category_check;
+alter table public.products add constraint products_category_check check (category in ('cover', 'outline', 'decor'));
+alter table public.products drop constraint if exists products_kind_check;
+alter table public.products add constraint products_kind_check check (kind in ('cover', 'outline', 'tray', 'frame', 'mirror'));

@@ -1,8 +1,8 @@
 // POST /api/order — validates a checkout, recomputes prices on the server, saves the order
 // with the service role and emails the shop (ORDER_NOTIFY_EMAIL, default eleenehovak@gmail.com).
 import { clientIp, config, esc, sendEmail, serviceClient } from './_lib.js';
-import { configCode, formatAMD, mergePricing, normLevers, priceOf } from '../src/lib/config.js';
-import { COVER_SHAPES, DECOR_SHAPES, DECOR_SIZES, PATTERNS, SECTION_TYPES } from '../src/data/seed.js';
+import { configCode, formatAMD, isPlate, mergePricing, normLevers, priceOf, sectionTypesFor, shapesFor } from '../src/lib/config.js';
+import { DECOR_SIZES, PATTERNS } from '../src/data/seed.js';
 
 const MAX_ITEMS = 50, MAX_QTY = 20, RATE_WINDOW_MIN = 10, RATE_MAX = 5;
 const ids = list => list.map(o => o.id);
@@ -17,17 +17,17 @@ function cleanConfig(raw, product, colorIds) {
   const c = raw.colors || {};
   const colors = { base: pick(c.base, colorIds, 'color'), pattern: pick(c.pattern, colorIds, 'color'), accent: pick(c.accent, colorIds, 'color') };
   const pattern = pick(raw.pattern, ids(PATTERNS), 'pattern');
-  if (product.kind === 'cover') {
+  if (isPlate(product.kind)) {
     const sections = pick(Number(raw.sections), [1, 2, 3, 4], 'sections');
-    const slotIds = ids(SECTION_TYPES);
+    const slotIds = ids(sectionTypesFor(product.kind));
     const slots = Array.from({ length: 4 }, (_, i) => slotIds.includes(raw.slots?.[i]) ? raw.slots[i] : 'k1');
     for (let i = 0; i < sections; i++) pick(raw.slots?.[i], slotIds, 'section');
     const levers = normLevers(raw.levers); // unknown topper ids fall back to 'none'
-    return { kind: 'cover', sections, slots, levers, shape: pick(raw.shape, ids(COVER_SHAPES), 'shape'), orientation: pick(raw.orientation, ['h', 'v'], 'orientation'), pattern, colors };
+    return { kind: product.kind, sections, slots, levers, shape: pick(raw.shape, ids(shapesFor(product.kind)), 'shape'), orientation: pick(raw.orientation, ['h', 'v'], 'orientation'), pattern, colors };
   }
   return {
     kind: product.kind,
-    shape: pick(raw.shape, ids(DECOR_SHAPES[product.kind] || []), 'shape'),
+    shape: pick(raw.shape, ids(shapesFor(product.kind)), 'shape'),
     size: pick(raw.size, ids(DECOR_SIZES[product.kind] || []), 'size'),
     pattern, colors
   };

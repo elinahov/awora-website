@@ -2,16 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabase.js';
 import { useCatalog } from '../../lib/catalog.jsx';
-import { formatAMD, initialConfig, priceOf } from '../../lib/config.js';
-import { COVER_SHAPES, DECOR_SHAPES, DECOR_SIZES, PATTERNS, SECTION_TYPES } from '../../data/seed.js';
+import { formatAMD, initialConfig, isPlate, priceOf, sectionTypesFor, shapesFor } from '../../lib/config.js';
+import { DECOR_SIZES, PATTERNS } from '../../data/seed.js';
 import ProductPreview from '../../components/ProductPreview.jsx';
 import { Opts } from '../../components/Options.jsx';
 import { Input, Msg, Select } from '../../components/Form.jsx';
 
-const KINDS = ['cover', 'tray', 'frame', 'mirror'];
-const defaultsFor = (kind, combo) => kind === 'cover'
-  ? { sections: 1, slots: ['k1'], shape: 'square', orientation: 'h', pattern: 'plain', combo }
-  : { shape: DECOR_SHAPES[kind][0].id, size: DECOR_SIZES[kind][0].id, pattern: 'plain', combo };
+const KINDS = ['cover', 'outline', 'tray', 'frame', 'mirror'];
+const KIND_LABEL = { cover: 'Switch / socket cover', outline: 'Outline frame (sides only)' };
+const categoryOf = kind => isPlate(kind) ? kind : 'decor';
+const defaultsFor = (kind, combo) => isPlate(kind)
+  ? { sections: 1, slots: ['k1'], shape: kind === 'outline' ? 'wavy' : 'square', orientation: 'h', pattern: 'plain', combo }
+  : { shape: shapesFor(kind)[0].id, size: DECOR_SIZES[kind][0].id, pattern: 'plain', combo };
 const blank = combo => ({ slug: '', category: 'cover', kind: 'cover', collection: '', name: { en: '', hy: '' }, blurb: { en: '', hy: '' }, defaults: defaultsFor('cover', combo), published: false });
 const slugify = s => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -38,8 +40,8 @@ export default function ProductEdit() {
   const setI18n = (k, lang, v) => set({ [k]: { ...p[k], [lang]: v } });
   const setD = patch => set({ defaults: { ...p.defaults, ...patch } });
   const d = p.defaults;
-  const cover = p.kind === 'cover';
-  const setKind = kind => set({ kind, category: kind === 'cover' ? 'cover' : 'decor', defaults: defaultsFor(kind, d.combo) });
+  const cover = isPlate(p.kind);
+  const setKind = kind => set({ kind, category: categoryOf(kind), defaults: defaultsFor(kind, d.combo) });
 
   const save = async e => {
     e.preventDefault();
@@ -88,7 +90,7 @@ export default function ProductEdit() {
           <div className="form__grid">
             <Input label="Slug (URL)" value={p.slug} readOnly={!isNew} required hint={isNew ? 'e.g. cloud-tray. Cannot be changed later.' : 'Cannot be changed.'}
               onChange={e => set({ slug: e.target.value })} onBlur={e => isNew && set({ slug: slugify(e.target.value) })} />
-            <Select label="Kind" value={p.kind} onChange={e => setKind(e.target.value)} options={KINDS.map(k => ({ value: k, label: k === 'cover' ? 'Switch / socket cover' : k }))} />
+            <Select label="Kind" value={p.kind} onChange={e => setKind(e.target.value)} options={KINDS.map(k => ({ value: k, label: KIND_LABEL[k] || k }))} />
             <Input label="Name (English)" value={p.name.en} required onChange={e => setI18n('name', 'en', e.target.value)} />
             <Input label="Name (Armenian)" value={p.name.hy} required onChange={e => setI18n('name', 'hy', e.target.value)} />
             <Input className="span2" label="Description (English)" textarea rows={3} value={p.blurb.en} onChange={e => setI18n('blurb', 'en', e.target.value)} />
@@ -104,17 +106,17 @@ export default function ProductEdit() {
               <Opts value={d.sections} onChange={n => setD({ sections: n, slots: Array.from({ length: n }, (_, i) => d.slots[i] || d.slots[d.slots.length - 1] || 'k1') })}
                 options={[1, 2, 3, 4].map(n => ({ id: n, label: String(n) }))} /></div>
             <div className="field"><span className="field__label">Shape</span>
-              <Opts value={d.shape} onChange={v => setD({ shape: v })} options={COVER_SHAPES.map(s => ({ id: s.id, label: s.name.en }))} /></div>
+              <Opts value={d.shape} onChange={v => setD({ shape: v })} options={shapesFor(p.kind).map(s => ({ id: s.id, label: s.name.en }))} /></div>
             {Array.from({ length: d.sections }, (_, i) => (
               <div className="field" key={i}><span className="field__label">Section {i + 1}</span>
                 <Opts value={d.slots[i]} onChange={v => setD({ slots: Array.from({ length: d.sections }, (_, j) => j === i ? v : d.slots[j] || 'k1') })}
-                  options={SECTION_TYPES.map(s => ({ id: s.id, label: s.name.en }))} /></div>
+                  options={sectionTypesFor(p.kind).map(s => ({ id: s.id, label: s.name.en }))} /></div>
             ))}
             {d.sections > 1 && <div className="field"><span className="field__label">Orientation</span>
               <Opts value={d.orientation || 'h'} onChange={v => setD({ orientation: v })} options={[{ id: 'h', label: 'Horizontal' }, { id: 'v', label: 'Vertical' }]} /></div>}
           </> : <>
             <div className="field"><span className="field__label">Shape</span>
-              <Opts value={d.shape} onChange={v => setD({ shape: v })} options={DECOR_SHAPES[p.kind].map(s => ({ id: s.id, label: s.name.en }))} /></div>
+              <Opts value={d.shape} onChange={v => setD({ shape: v })} options={shapesFor(p.kind).map(s => ({ id: s.id, label: s.name.en }))} /></div>
             <div className="field"><span className="field__label">Size</span>
               <Opts value={d.size} onChange={v => setD({ size: v })} options={DECOR_SIZES[p.kind].map(s => ({ id: s.id, label: `${s.id.toUpperCase()} · ${s.dims}` }))} /></div>
           </>}
