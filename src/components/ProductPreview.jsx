@@ -122,12 +122,12 @@ function PatternFill({ id, kind, w, h, color, base }) {
           {BLOB_DROPS.map(([x, y, rx, ry, rot]) => <ellipse key={`${x}${y}`} cx={x} cy={y} rx={rx} ry={ry} transform={`rotate(${rot} ${x} ${y})`} fill={color} />)}
         </g>))}
       </pattern></defs><rect x={-BLEED} y={-BLEED} width={w + 2 * BLEED} height={h + 2 * BLEED} fill={`url(#${id})`} /></>;
-    case 'halves': { // mid-century half circles: cells alternate between a left/right pair and a top/bottom pair, every other column shifted half a cell
+    case 'halves': { // mid-century half circles: a checkerboard of cells holding a left/right pair or a top/bottom pair
       const C = 46, r = C / 2;
       const cell = (x, y, horiz) => horiz
         ? `M${x + C} ${y}A${r} ${r} 0 0 1 ${x} ${y}ZM${x} ${y + C}A${r} ${r} 0 0 1 ${x + C} ${y + C}Z`
         : `M${x} ${y}A${r} ${r} 0 0 1 ${x} ${y + C}ZM${x + C} ${y + C}A${r} ${r} 0 0 1 ${x + C} ${y}Z`;
-      const d = [cell(0, 0, false), cell(0, C, true), cell(C, -r, true), cell(C, r, false), cell(C, C + r, true)].join('');
+      const d = [cell(0, 0, false), cell(0, C, true), cell(C, 0, true), cell(C, C, false)].join('');
       return <><defs><pattern id={id} width={2 * C} height={2 * C} patternUnits="userSpaceOnUse" patternTransform="translate(-4 -6)"><path d={d} fill={color} /></pattern></defs><rect x={-BLEED} y={-BLEED} width={w + 2 * BLEED} height={h + 2 * BLEED} fill={`url(#${id})`} /></>;
     }
     case 'cherries': // cherry pairs on a staggered grid, copies around the tile keep it seamless
